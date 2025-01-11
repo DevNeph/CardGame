@@ -1,0 +1,52 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b22f91302561198408190f6ea5efe632, type: 3}
+  m_Name: Layout-1
+  m_EditorClassIdentifier: 
+  layoutName: Layout 1
+  positions:
+  - position: {x: -2, y: 3, z: 0}
+    rotation: 0
+    layer: 0
+    isHidden: 0
+  - position: {x: 0, y: 3, z: 0}
+    rotation: 0
+    layer: 0
+    isHidden: 0
+  - position: {x: 2, y: 3, z: 0}
+    rotation: 0
+    layer: 0
+    isHidden: 0
+  - position: {x: -2, y: 1, z: 0}
+    rotation: 0
+    layer: 0
+    isHidden: 0
+  - position: {x: 0, y: 1, z: 0}
+    rotation: 0
+    layer: 0
+    isHidden: 0
+  - position: {x: 2, y: 1, z: 0}
+    rotation: 0
+    layer: 0
+    isHidden: 0
+  - position: {x: -2, y: -1, z: 0}
+    rotation: 0
+    layer: 0
+    isHidden: 0
+  - position: {x: 0, y: -1, z: 0}
+    rotation: 0
+    layer: 0
+    isHidden: 0
+  - position: {x: 2, y: -1, z: 0}
+    rotation: 0
+    layer: 0
+    isHidden: 0
