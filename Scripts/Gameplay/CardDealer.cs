@@ -85,8 +85,17 @@ public class CardDealer : MonoBehaviour
             var card = newCardObj.GetComponent<Card>();
             card.SetupCard(cardID, cardData.cardSprite, pos.isHidden);
 
+            // BoxCollider2D boyutunu sprite'a göre ayarla
+            var boxCollider = newCardObj.GetComponent<BoxCollider2D>();
+            if (boxCollider != null && cardData.cardSprite != null)
+            {
+                boxCollider.size = cardData.cardSprite.bounds.size;
+            }
+
             // Kartı layer'a göre sahnede doğru sırada göster
             newCardObj.transform.position += Vector3.forward * -pos.layer;
         }
+
+        GameObject.FindObjectOfType<GameManager>()?.UpdateAllCardsAppearance();
     }
 }

@@ -9,10 +9,12 @@ public class Card : MonoBehaviour
     private bool isInSlot = false;
 
     private GameManager gm;
+    private BoxCollider2D boxCollider;
 
     private void Awake()
     {
         spriteRenderer = GetComponent<SpriteRenderer>();
+        boxCollider = GetComponent<BoxCollider2D>();  // BoxCollider2D referansını al
         gm = Object.FindFirstObjectByType<GameManager>();
     }
 
@@ -62,21 +64,7 @@ public class Card : MonoBehaviour
     {
         if (spriteRenderer != null)
         {
-            StartCoroutine(FadeInCard());
-        }
-    }
-
-    private IEnumerator FadeInCard()
-    {
-        if (spriteRenderer != null)
-        {
             Color color = spriteRenderer.color;
-            while (color.a < 1f)
-            {
-                color.a += Time.deltaTime;
-                spriteRenderer.color = color;
-                yield return null;
-            }
             color.a = 1f;
             spriteRenderer.color = color;
         }
@@ -103,14 +91,26 @@ public class Card : MonoBehaviour
     {
         if (isInSlot) return false;
 
-        float thisCardZ = transform.position.z;
-
-        Card[] allCards = FindObjectsOfType<Card>();
-        foreach (Card card in allCards)
+        // BoxCollider2D boyutlarını kullanarak overlap kontrolü yap
+        Vector2 boxSize = boxCollider.size;
+        Vector2 boxPosition = (Vector2)transform.position + boxCollider.offset;
+        
+        // Tüm çakışan collider'ları bul
+        Collider2D[] overlaps = Physics2D.OverlapBoxAll(boxPosition, boxSize, 0f);
+        
+        foreach (Collider2D overlap in overlaps)
         {
-            if (card != this && !card.isInSlot && card.transform.position.z < thisCardZ)
+            // Kendisini atla
+            if (overlap.gameObject == gameObject) continue;
+            
+            Card otherCard = overlap.GetComponent<Card>();
+            if (otherCard != null && !otherCard.isInSlot)
             {
-                return true;
+                // Diğer kart daha düşük z değerine sahipse (yani üstte ise)
+                if (otherCard.transform.position.z < transform.position.z)
+                {
+                    return true;
+                }
             }
         }
 
@@ -125,13 +125,14 @@ public class Card : MonoBehaviour
             return;
         }
 
+        // Kart üstte kart var mı kontrol et
         if (IsCardBehind())
         {
-            SetAsBehind();
+            SetAsBehind();  // Üstte kart varsa yarı saydam yap
         }
         else
         {
-            SetAsInFront();
+            SetAsInFront(); // Üstte kart yoksa tam opak yap
         }
     }
 }

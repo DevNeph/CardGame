@@ -40,6 +40,7 @@ public class GameManager : MonoBehaviour
         if(LevelSelection.selectedLevel != null)
         {
             StartLevel(LevelSelection.selectedLevel);
+            UpdateAllCardsAppearance();
         }
         else
         {
@@ -65,7 +66,7 @@ public class GameManager : MonoBehaviour
         }
 
         UpdateRemovedCardText();
-        UpdateAllCardsAppearance();
+        
 
         if (levelCompletePanel != null)
         {
