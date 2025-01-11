@@ -3,11 +3,11 @@ using UnityEngine;
 
 public class CardDealer : MonoBehaviour
 {
-    public LevelDefinition currentLevel;  // Seviye ayarları (kart ID'leri, layout bilgisi)
-    public CardDataList cardDataList;     // Kart veri listesi (ID -> Sprite eşleştirme)
-    public GameObject cardPrefab;         // Kart prefab'ı
+    public LevelDefinition currentLevel;
+    public CardDataList cardDataList;
+    public GameObject cardPrefab;
 
-    private List<int> workingDeck;        // Oyun için kullanılan deste
+    private List<int> workingDeck;
 
     void Start()
     {
@@ -16,14 +16,10 @@ public class CardDealer : MonoBehaviour
         PlaceCardsAccordingToLayout();
     }
 
-    /// <summary>
-    /// Deste oluşturulur.
-    /// </summary>
     void InitDeck()
     {
         int totalCards = currentLevel.totalCards;
         var allowedIDs = currentLevel.allowedCardIDs;
-
         workingDeck = new List<int>();
 
         if (allowedIDs.Count == 0)
@@ -32,21 +28,93 @@ public class CardDealer : MonoBehaviour
             return;
         }
 
-        int copiesPerID = totalCards / allowedIDs.Count;
-        int remainder = totalCards % allowedIDs.Count;
-
-        foreach (int id in allowedIDs)
+        // Spesifik kart hedeflerini kontrol et ve ekle
+        if ((currentLevel.completionType == LevelCompletionType.SpecificCards || 
+             currentLevel.completionType == LevelCompletionType.BothConditions) && 
+            currentLevel.collectionTargets != null)
         {
-            for (int i = 0; i < copiesPerID; i++)
+            int totalSpecificCards = 0;
+            
+            foreach (var target in currentLevel.collectionTargets)
             {
-                workingDeck.Add(id);
+                // Gerekli set sayısını hesapla (3'lü gruplar için)
+                int requiredSets = Mathf.CeilToInt(target.requiredCount / 3f);
+                int cardsToAdd = requiredSets * 3;
+                totalSpecificCards += cardsToAdd;
+
+                // Hedef kartları ekle
+                for (int i = 0; i < cardsToAdd; i++)
+                {
+                    workingDeck.Add(target.cardID);
+                }
+
+                Debug.Log($"Added {cardsToAdd} cards of ID {target.cardID} (need {target.requiredCount})");
+            }
+
+            // Toplam kart sayısını kontrol et ve güncelle
+            if (totalSpecificCards > totalCards)
+            {
+                Debug.LogWarning($"Required specific cards ({totalSpecificCards}) exceed total cards limit ({totalCards}). Adjusting total cards.");
+                totalCards = totalSpecificCards;
+                currentLevel.totalCards = totalCards;
             }
         }
 
-        for (int i = 0; i < remainder; i++)
+        // Kalan kartları diğer ID'lerden rastgele ekle
+        while (workingDeck.Count < totalCards)
         {
-            workingDeck.Add(allowedIDs[i]);
+            // Kullanılabilir ID'lerden rastgele seç
+            List<int> availableIDs = new List<int>();
+            foreach (int id in allowedIDs)
+            {
+                // Eğer bu ID bir hedef kart değilse, kullanılabilir ID'lere ekle
+                bool isTargetCard = false;
+                if (currentLevel.collectionTargets != null)
+                {
+                    foreach (var target in currentLevel.collectionTargets)
+                    {
+                        if (target.cardID == id)
+                        {
+                            isTargetCard = true;
+                            break;
+                        }
+                    }
+                }
+                if (!isTargetCard)
+                {
+                    availableIDs.Add(id);
+                }
+            }
+
+            // Eğer kullanılabilir ID kalmadıysa, tüm ID'leri kullan
+            if (availableIDs.Count == 0)
+            {
+                availableIDs = new List<int>(allowedIDs);
+            }
+
+            // Rastgele bir ID seç ve 3'lü grup olarak ekle
+            int randomID = availableIDs[Random.Range(0, availableIDs.Count)];
+            for (int i = 0; i < 3 && workingDeck.Count < totalCards; i++)
+            {
+                workingDeck.Add(randomID);
+            }
         }
+
+        // Debug bilgisi
+        Dictionary<int, int> cardCounts = new Dictionary<int, int>();
+        foreach (int cardID in workingDeck)
+        {
+            if (!cardCounts.ContainsKey(cardID))
+                cardCounts[cardID] = 0;
+            cardCounts[cardID]++;
+        }
+
+        string debugInfo = "Final deck composition:\n";
+        foreach (var kvp in cardCounts)
+        {
+            debugInfo += $"Card ID {kvp.Key}: {kvp.Value} cards\n";
+        }
+        Debug.Log(debugInfo);
     }
 
     /// <summary>
