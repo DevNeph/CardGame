@@ -103,6 +103,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   cardID: 0
+  uniqueID: 0
 --- !u!61 &1291983156506517950
 BoxCollider2D:
   m_ObjectHideFlags: 0

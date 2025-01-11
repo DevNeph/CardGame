@@ -1,41 +1,26 @@
-using UnityEngine;
 using System.Collections.Generic;
-using System.Linq;
+using UnityEngine;
 
 public class CardDealer : MonoBehaviour
 {
-    public LevelDefinition currentLevel;
-    public CardDataList cardDataList;
-    public GameObject cardPrefab;
+    public LevelDefinition currentLevel;  // Seviye ayarları (kart ID'leri, layout bilgisi)
+    public CardDataList cardDataList;     // Kart veri listesi (ID -> Sprite eşleştirme)
+    public GameObject cardPrefab;         // Kart prefab'ı
 
-    private List<int> workingDeck;
-    private int uniqueCardCounter = 0; // Her kart için unique ID
+    private List<int> workingDeck;        // Oyun için kullanılan deste
 
     void Start()
     {
-        if (LevelSelection.selectedLevel != null)
-        {
-            currentLevel = LevelSelection.selectedLevel;
-            Debug.Log("Loaded level: " + currentLevel.levelName);
-        }
-        else
-        {
-            Debug.LogError("No level selected! Defaulting to first level.");
-        }
-
         InitDeck();
         ShuffleDeck();
         PlaceCardsAccordingToLayout();
     }
 
+    /// <summary>
+    /// Deste oluşturulur.
+    /// </summary>
     void InitDeck()
     {
-        if (currentLevel == null)
-        {
-            Debug.LogError("currentLevel is null in CardDealer!");
-            return;
-        }
-
         int totalCards = currentLevel.totalCards;
         var allowedIDs = currentLevel.allowedCardIDs;
 
@@ -43,11 +28,13 @@ public class CardDealer : MonoBehaviour
 
         if (allowedIDs.Count == 0)
         {
-            Debug.LogError("No allowed IDs in LevelDefinition!");
+            Debug.LogError("No allowed IDs for this level!");
             return;
         }
 
         int copiesPerID = totalCards / allowedIDs.Count;
+        int remainder = totalCards % allowedIDs.Count;
+
         foreach (int id in allowedIDs)
         {
             for (int i = 0; i < copiesPerID; i++)
@@ -56,15 +43,15 @@ public class CardDealer : MonoBehaviour
             }
         }
 
-        int remainder = totalCards % allowedIDs.Count;
         for (int i = 0; i < remainder; i++)
         {
             workingDeck.Add(allowedIDs[i]);
         }
-
-        Debug.Log("Deck initialized with " + workingDeck.Count + " cards.");
     }
 
+    /// <summary>
+    /// Deste karıştırılır.
+    /// </summary>
     void ShuffleDeck()
     {
         for (int i = 0; i < workingDeck.Count; i++)
@@ -76,98 +63,30 @@ public class CardDealer : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Kartlar layout'a göre yerleştirilir.
+    /// </summary>
     void PlaceCardsAccordingToLayout()
     {
         var layout = currentLevel.layoutData;
-        var posList = layout.positions;
+        var positions = layout.positions;
 
-        int spawnCount = Mathf.Min(posList.Count, workingDeck.Count);
-        
-        // Kartları katmanlara göre oluştur
-        // Önce en alttaki katmandan başla
-        int maxLayer = posList.Max(p => p.layer);
-        
-        for (int currentLayer = maxLayer; currentLayer >= 0; currentLayer--)
+        int spawnCount = Mathf.Min(positions.Count, workingDeck.Count);
+
+        for (int i = 0; i < spawnCount; i++)
         {
-            for (int i = 0; i < spawnCount; i++)
-            {
-                var p = posList[i];
-                
-                // Sadece mevcut katmandaki kartları oluştur
-                if (p.layer != currentLayer) continue;
+            int cardID = workingDeck[i];
+            var cardData = cardDataList.GetDataByID(cardID);
+            if (cardData == null) continue;
 
-                int cardID = workingDeck[i];
-                var cData = cardDataList.GetDataByID(cardID);
-                if (cData == null) continue;
+            var pos = positions[i];
+            var newCardObj = Instantiate(cardPrefab, pos.position, Quaternion.Euler(0, 0, pos.rotation));
 
-                // Kartı oluştur
-                GameObject newCardObj = CreateCard(p, cardID, cData);
-                
-                // Kart bileşenlerini ayarla
-                SetupCardComponents(newCardObj, p, currentLayer);
-            }
+            var card = newCardObj.GetComponent<Card>();
+            card.SetupCard(cardID, cardData.cardSprite, pos.isHidden);
+
+            // Kartı layer'a göre sahnede doğru sırada göster
+            newCardObj.transform.position += Vector3.forward * -pos.layer;
         }
-    }
-
-    private GameObject CreateCard(LayoutPosition p, int cardID, CardData cData)
-    {
-        // Kartın temel pozisyonunu ayarla
-        Vector3 position = p.position;
-        position.z = CalculateZPosition(p.layer);
-
-        // Kartı oluştur
-        GameObject newCardObj = Instantiate(cardPrefab, position, Quaternion.Euler(0, 0, p.rotation));
-        
-        // Unique ID ata
-        uniqueCardCounter++;
-        
-        return newCardObj;
-    }
-
-    private void SetupCardComponents(GameObject cardObj, LayoutPosition p, int layer)
-    {
-        // Card bileşenini al ve ayarla
-        Card cardComp = cardObj.GetComponent<Card>();
-        if (cardComp != null)
-        {
-            cardComp.uniqueID = uniqueCardCounter;
-            cardComp.SetupCard(workingDeck[uniqueCardCounter - 1], 
-                cardDataList.GetDataByID(workingDeck[uniqueCardCounter - 1]).cardSprite, 
-                p.isHidden);
-        }
-
-        // Z pozisyonunu ayarla
-        Vector3 position = cardObj.transform.position;
-        position.z = -layer * 0.1f; // Üstteki kartlar daha küçük Z değerine sahip olmalı
-        cardObj.transform.position = position;
-
-        // Rigidbody ayarları
-        Rigidbody2D rb = cardObj.GetComponent<Rigidbody2D>();
-        if (rb == null)
-        {
-            rb = cardObj.AddComponent<Rigidbody2D>();
-        }
-        rb.bodyType = RigidbodyType2D.Kinematic;
-        rb.gravityScale = 0;
-
-        // Collider ayarları
-        BoxCollider2D collider = cardObj.GetComponent<BoxCollider2D>();
-        if (collider == null)
-        {
-            collider = cardObj.AddComponent<BoxCollider2D>();
-        }
-        collider.isTrigger = true;
-
-        // SpriteRenderer sorting order ayarı
-        SpriteRenderer renderer = cardObj.GetComponent<SpriteRenderer>();
-        if (renderer != null)
-        {
-            renderer.sortingOrder = layer;
-        }
-    }
-
-    private float CalculateZPosition(int layer)
-    {
-        return -layer * 0.1f;
     }
 }
