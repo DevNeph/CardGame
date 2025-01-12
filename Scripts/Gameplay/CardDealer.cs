@@ -1,169 +1,316 @@
 using System.Collections.Generic;
 using UnityEngine;
+using System.Linq;
 
 public class CardDealer : MonoBehaviour
 {
-    public LevelDefinition currentLevel;
-    public CardDataList cardDataList;
-    public GameObject cardPrefab;
+    #region Inspector Fields
+    [Header("Required References")]
+    [SerializeField] private CardDataList cardDataList;
+    [SerializeField] private GameObject cardPrefab;
 
+    [Header("Debug Settings")]
+    [SerializeField] private bool showDebugLogs = false;
+    #endregion
+
+    #region Private Fields
     private List<int> workingDeck;
+    private StageDefinition currentStage;
+    private LayoutData currentLayout;
+    private Dictionary<int, int> cardCounts;
+    #endregion
 
-    void Start()
+    #region Initialize Methods
+    public void InitializeStage(StageDefinition stage)
     {
-        InitDeck();
-        ShuffleDeck();
-        PlaceCardsAccordingToLayout();
+        if (ValidateStageInitialization(stage))
+        {
+            currentStage = stage;
+            ClearCurrentCards();
+            InitializeDeckForStage();
+            ShuffleDeck();
+            PlaceCardsAccordingToLayout();
+        }
     }
 
-    void InitDeck()
+    private bool ValidateStageInitialization(StageDefinition stage)
     {
-        int totalCards = currentLevel.totalCards;
-        var allowedIDs = currentLevel.allowedCardIDs;
-        workingDeck = new List<int>();
-
-        if (allowedIDs.Count == 0)
+        if (stage == null)
         {
-            Debug.LogError("No allowed IDs for this level!");
+            Debug.LogError("CardDealer: Stage is null!");
+            return false;
+        }
+
+        if (cardDataList == null)
+        {
+            Debug.LogError("CardDealer: CardDataList is not assigned!");
+            return false;
+        }
+
+        if (cardPrefab == null)
+        {
+            Debug.LogError("CardDealer: Card Prefab is not assigned!");
+            return false;
+        }
+
+        return true;
+    }
+
+    private void InitializeDeckForStage()
+    {
+        workingDeck = new List<int>();
+        cardCounts = new Dictionary<int, int>();
+
+        AddTargetCardsToWorkingDeck();
+        AddBalancedRemainingCards();
+
+        if (showDebugLogs)
+        {
+            Debug.Log($"Deck initialized with {workingDeck.Count} cards");
+            LogCardDistribution();
+        }
+    }
+    #endregion
+
+    #region Card Distribution Methods
+    private void AddTargetCardsToWorkingDeck()
+    {
+        if (currentStage?.objectives == null) return;
+
+        var targetCards = CalculateTargetCardRequirements();
+        foreach (var targetCard in targetCards)
+        {
+            AddCardsOfType(targetCard.Key, targetCard.Value);
+            if (showDebugLogs)
+            {
+                Debug.Log($"Added {targetCard.Value} cards of specific ID {targetCard.Key}");
+            }
+        }
+    }
+
+    private Dictionary<int, int> CalculateTargetCardRequirements()
+    {
+        var targetCards = new Dictionary<int, int>();
+
+        foreach (var objective in currentStage.objectives)
+        {
+            if (objective.type == ObjectiveType.CollectSpecificCards && objective.specificCardID > 0)
+            {
+                int setsNeeded = Mathf.CeilToInt(objective.targetAmount / 3f);
+                int cardsNeeded = setsNeeded * 3;
+
+                if (targetCards.ContainsKey(objective.specificCardID))
+                {
+                    targetCards[objective.specificCardID] = Mathf.Max(targetCards[objective.specificCardID], cardsNeeded);
+                }
+                else
+                {
+                    targetCards[objective.specificCardID] = cardsNeeded;
+                }
+            }
+        }
+
+        return targetCards;
+    }
+
+    private void AddBalancedRemainingCards()
+    {
+        int totalRequired = CalculateTotalRequiredCards();
+        int remaining = totalRequired - workingDeck.Count;
+        
+        if (remaining <= 0) return;
+
+        var availableCards = GetAvailableCards();
+        if (!availableCards.Any())
+        {
+            Debug.LogWarning("No available cards for balanced distribution!");
             return;
         }
 
-        // Spesifik kart hedeflerini kontrol et ve ekle
-        if ((currentLevel.completionType == LevelCompletionType.SpecificCards || 
-             currentLevel.completionType == LevelCompletionType.BothConditions) && 
-            currentLevel.collectionTargets != null)
-        {
-            int totalSpecificCards = 0;
-            
-            foreach (var target in currentLevel.collectionTargets)
-            {
-                // Gerekli set sayısını hesapla (3'lü gruplar için)
-                int requiredSets = Mathf.CeilToInt(target.requiredCount / 3f);
-                int cardsToAdd = requiredSets * 3;
-                totalSpecificCards += cardsToAdd;
-
-                // Hedef kartları ekle
-                for (int i = 0; i < cardsToAdd; i++)
-                {
-                    workingDeck.Add(target.cardID);
-                }
-
-                Debug.Log($"Added {cardsToAdd} cards of ID {target.cardID} (need {target.requiredCount})");
-            }
-
-            // Toplam kart sayısını kontrol et ve güncelle
-            if (totalSpecificCards > totalCards)
-            {
-                Debug.LogWarning($"Required specific cards ({totalSpecificCards}) exceed total cards limit ({totalCards}). Adjusting total cards.");
-                totalCards = totalSpecificCards;
-                currentLevel.totalCards = totalCards;
-            }
-        }
-
-        // Kalan kartları diğer ID'lerden rastgele ekle
-        while (workingDeck.Count < totalCards)
-        {
-            // Kullanılabilir ID'lerden rastgele seç
-            List<int> availableIDs = new List<int>();
-            foreach (int id in allowedIDs)
-            {
-                // Eğer bu ID bir hedef kart değilse, kullanılabilir ID'lere ekle
-                bool isTargetCard = false;
-                if (currentLevel.collectionTargets != null)
-                {
-                    foreach (var target in currentLevel.collectionTargets)
-                    {
-                        if (target.cardID == id)
-                        {
-                            isTargetCard = true;
-                            break;
-                        }
-                    }
-                }
-                if (!isTargetCard)
-                {
-                    availableIDs.Add(id);
-                }
-            }
-
-            // Eğer kullanılabilir ID kalmadıysa, tüm ID'leri kullan
-            if (availableIDs.Count == 0)
-            {
-                availableIDs = new List<int>(allowedIDs);
-            }
-
-            // Rastgele bir ID seç ve 3'lü grup olarak ekle
-            int randomID = availableIDs[Random.Range(0, availableIDs.Count)];
-            for (int i = 0; i < 3 && workingDeck.Count < totalCards; i++)
-            {
-                workingDeck.Add(randomID);
-            }
-        }
-
-        // Debug bilgisi
-        Dictionary<int, int> cardCounts = new Dictionary<int, int>();
-        foreach (int cardID in workingDeck)
-        {
-            if (!cardCounts.ContainsKey(cardID))
-                cardCounts[cardID] = 0;
-            cardCounts[cardID]++;
-        }
-
-        string debugInfo = "Final deck composition:\n";
-        foreach (var kvp in cardCounts)
-        {
-            debugInfo += $"Card ID {kvp.Key}: {kvp.Value} cards\n";
-        }
-        Debug.Log(debugInfo);
+        DistributeRemainingCards(remaining, availableCards);
     }
 
-    /// <summary>
-    /// Deste karıştırılır.
-    /// </summary>
-    void ShuffleDeck()
+    private int CalculateTotalRequiredCards()
     {
-        for (int i = 0; i < workingDeck.Count; i++)
+        if (currentStage == null) return 9;
+
+        // Stage'de belirtilen toplam kart sayısını kullan
+        return currentStage.totalCardsInStage;
+    }
+
+    private List<int> GetAvailableCards()
+    {
+        return currentStage.allowedCardIDs
+            .Where(id => !currentStage.objectives.Any(obj => 
+                obj.type == ObjectiveType.CollectSpecificCards && 
+                obj.specificCardID == id))
+            .Where(id => IsValidCardID(id))
+            .ToList();
+    }
+
+    private void DistributeRemainingCards(int remainingCards, List<int> availableCards)
+    {
+        if (availableCards.Count == 0 || remainingCards <= 0) return;
+
+        int totalGroups = remainingCards / 3;
+        int baseGroupsPerType = totalGroups / availableCards.Count;
+        int extraGroups = totalGroups % availableCards.Count;
+
+        // Kartları tek seferde dağıt
+        foreach (int cardID in availableCards)
         {
-            int randIndex = Random.Range(i, workingDeck.Count);
-            int temp = workingDeck[i];
-            workingDeck[i] = workingDeck[randIndex];
-            workingDeck[randIndex] = temp;
+            int groupsForThisCard = baseGroupsPerType + (extraGroups > 0 ? 1 : 0);
+            if (extraGroups > 0) extraGroups--;
+
+            int cardsToAdd = groupsForThisCard * 3;
+            if (cardsToAdd > 0)
+            {
+                AddCardsOfType(cardID, cardsToAdd);
+                
+                if (showDebugLogs)
+                {
+                    Debug.Log($"Added {cardsToAdd} cards of type {cardID}");
+                }
+            }
+        }
+    }
+    #endregion
+
+    #region Card Management Methods
+    private int CalculateMaxCardsPerType(int remainingCards, int availableCardCount)
+    {
+        int maxCards = Mathf.CeilToInt(remainingCards / (float)availableCardCount);
+        return Mathf.CeilToInt(maxCards / 3f) * 3;
+    }
+
+    private bool IsValidCardID(int cardID)
+    {
+        return cardID > 0 && cardDataList.GetDataByID(cardID) != null;
+    }
+
+    private int GetLeastUsedCard(List<int> availableCards)
+    {
+        return availableCards.OrderBy(id => GetCardCount(id)).First();
+    }
+
+    private void AddCardsOfType(int cardID, int count)
+    {
+        if (!IsValidCardID(cardID))
+        {
+            Debug.LogError($"Invalid card ID: {cardID}");
+            return;
+        }
+
+        for (int i = 0; i < count; i++)
+        {
+            workingDeck.Add(cardID);
+        }
+
+        if (!cardCounts.ContainsKey(cardID))
+            cardCounts[cardID] = 0;
+        cardCounts[cardID] += count;
+    }
+
+    private int GetCardCount(int cardID)
+    {
+        return cardCounts.ContainsKey(cardID) ? cardCounts[cardID] : 0;
+    }
+    #endregion
+
+    #region Layout and Card Placement
+    private void ShuffleDeck()
+    {
+        for (int i = workingDeck.Count - 1; i > 0; i--)
+        {
+            int randIndex = Random.Range(0, i + 1);
+            (workingDeck[i], workingDeck[randIndex]) = (workingDeck[randIndex], workingDeck[i]);
         }
     }
 
-    /// <summary>
-    /// Kartlar layout'a göre yerleştirilir.
-    /// </summary>
-    void PlaceCardsAccordingToLayout()
+    private void PlaceCardsAccordingToLayout()
     {
-        var layout = currentLevel.layoutData;
-        var positions = layout.positions;
+        if (!ValidateLayout()) return;
 
-        int spawnCount = Mathf.Min(positions.Count, workingDeck.Count);
+        // Pozisyonları sırala, ama z pozisyonunu özel olarak ele al
+        var sortedPositions = currentLayout.positions
+            .OrderByDescending(p => p.layer) // Z yerine layer'a göre sırala
+            .Take(workingDeck.Count)
+            .ToList();
 
-        for (int i = 0; i < spawnCount; i++)
+        for (int i = 0; i < sortedPositions.Count && i < workingDeck.Count; i++)
         {
-            int cardID = workingDeck[i];
-            var cardData = cardDataList.GetDataByID(cardID);
-            if (cardData == null) continue;
+            SpawnCard(workingDeck[i], sortedPositions[i], i); // index'i de gönder
+        }
 
-            var pos = positions[i];
-            var newCardObj = Instantiate(cardPrefab, pos.position, Quaternion.Euler(0, 0, pos.rotation));
+        GameManager.Instance?.UpdateAllCardsAppearance();
+    }
+    private bool ValidateLayout()
+    {
+        if (currentLayout == null || currentLayout.positions == null)
+        {
+            Debug.LogError("No valid layout data!");
+            return false;
+        }
 
-            var card = newCardObj.GetComponent<Card>();
+        if (currentLayout.positions.Count < workingDeck.Count)
+        {
+            Debug.LogError($"Not enough positions ({currentLayout.positions.Count}) for cards ({workingDeck.Count})!");
+            return false;
+        }
+
+        return true;
+    }
+
+    private void SpawnCard(int cardID, LayoutPosition pos, int index)
+    {
+        var cardData = cardDataList.GetDataByID(cardID);
+        if (cardData == null) return;
+
+        // Z pozisyonunu index'e göre ayarla
+        Vector3 spawnPosition = new Vector3(
+            pos.position.x, 
+            pos.position.y, 
+            -index * 0.01f // Negatif değer kullan (küçük Z = öne)
+        );
+
+        var cardObj = Instantiate(cardPrefab, spawnPosition, Quaternion.Euler(0, 0, pos.rotation));
+        var card = cardObj.GetComponent<Card>();
+
+        if (card != null)
+        {
             card.SetupCard(cardID, cardData.cardSprite, pos.isHidden);
-
-            // BoxCollider2D boyutunu sprite'a göre ayarla
-            var boxCollider = newCardObj.GetComponent<BoxCollider2D>();
-            if (boxCollider != null && cardData.cardSprite != null)
-            {
-                boxCollider.size = cardData.cardSprite.bounds.size;
-            }
-
-            // Kartı layer'a göre sahnede doğru sırada göster
-            newCardObj.transform.position += Vector3.forward * -pos.layer;
+            card.SetLayerIndex(pos.layer);
+            card.UpdateCardAppearance();
         }
-
-        GameObject.FindObjectOfType<GameManager>()?.UpdateAllCardsAppearance();
     }
+    #endregion
+
+    #region Public Methods
+    public void SetLayout(LayoutData layout)
+    {
+        currentLayout = layout ?? throw new System.ArgumentNullException(nameof(layout));
+        if (showDebugLogs)
+        {
+            Debug.Log($"Layout set: {layout.layoutName} with {layout.positions.Count} positions");
+        }
+    }
+
+    public void ClearCurrentCards()
+    {
+        var existingCards = FindObjectsByType<Card>(FindObjectsSortMode.None);
+        foreach (var card in existingCards)
+        {
+            Destroy(card.gameObject);
+        }
+    }
+
+    private void LogCardDistribution()
+    {
+        if (!showDebugLogs) return;
+        
+        var distribution = string.Join(", ", cardCounts.Select(kvp => 
+            $"Card {kvp.Key}: {kvp.Value}"));
+        Debug.Log($"Card Distribution: {distribution}");
+    }
+    #endregion
 }

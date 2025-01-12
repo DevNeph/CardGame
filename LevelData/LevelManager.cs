@@ -1,103 +1,215 @@
 using UnityEngine;
-using System.Collections;
 using UnityEngine.Events;
+using System.Collections;
+using System.Linq;
+
+[System.Serializable]
+public class StageEvent : UnityEvent<StageDefinition> { }
+
+[System.Serializable]
+public class LevelEvent : UnityEvent<LevelDefinition> { }
+
+[System.Serializable]
+public class ObjectiveEvent : UnityEvent<StageObjective> { }
 
 public class LevelManager : MonoBehaviour
 {
-    public LevelDefinition currentLevel;
-    private int currentStageIndex = 0;
-    
-    [Header("Events")]
-    public UnityEvent<StageDefinition> onStageStart;
-    public UnityEvent<StageDefinition> onStageComplete;
-    public UnityEvent<LevelDefinition> onLevelComplete;
-    public UnityEvent<StageObjective> onObjectiveProgress;
 
-    private void Start()
+    private static LevelManager _instance;
+    public static LevelManager Instance
     {
-        if(currentLevel != null)
-            StartStage(0);
+        get { return _instance; }
+        private set { _instance = value; }
     }
 
+    #region Inspector Fields
+    [Header("Level Data")]
+    public LevelDefinition currentLevel;
+    public int currentStageIndex = 0;
+    
+    [Header("Events")]
+    public StageEvent onStageStart = new StageEvent();
+    public StageEvent onStageComplete = new StageEvent();
+    public LevelEvent onLevelComplete = new LevelEvent();
+    public ObjectiveEvent onObjectiveProgress = new ObjectiveEvent();
+
+    [Header("Settings")]
+    [SerializeField] private float stageTransitionDelay = 1.5f;
+    #endregion
+
+    #region Properties
+    public StageEvent OnStageStart => onStageStart;
+    public StageEvent OnStageComplete => onStageComplete;
+    public LevelEvent OnLevelComplete => onLevelComplete;
+    public ObjectiveEvent OnObjectiveProgress => onObjectiveProgress;
+    #endregion
+
+    private CardDealer cardDealer;
+    private GameManager gameManager;
+
+    private bool isInitialized = false; // Eklenen satır
+    private bool isGameStarted = false;
+
+    #region Unity Lifecycle
+    
+    private void Awake()
+    {
+        // Singleton pattern
+        if (_instance != null && _instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
+        _instance = this;
+
+        cardDealer = GetComponent<CardDealer>();
+        gameManager = GetComponent<GameManager>();
+
+        if (cardDealer == null || gameManager == null)
+        {
+            Debug.LogError("[LevelManager] Required components missing!");
+            return;
+        }
+
+        InitializeEvents();
+        // LoadLevelFromPlayerPrefs(); -> Bunu kaldırıyoruz
+        
+        // Başlangıçta component'i deaktif et
+        enabled = false;
+        
+        Debug.Log("[LevelManager] Initialized successfully.");
+    }
+
+    public void StartGame()
+    {
+        if (!isGameStarted)
+        {
+            isGameStarted = true;
+            enabled = true;
+            
+            if (currentLevel == null)
+            {
+                Debug.LogError("No level data set before StartGame!");
+                return;
+            }
+            
+            Debug.Log($"Starting game with level: {currentLevel.levelName}");
+            InitializeLevel();
+        }
+    }
+
+    public void LoadLevelFromPlayerPrefs()
+    {
+        if (!isGameStarted) return; // Oyun başlamadıysa yükleme yapma
+        
+        int levelIndex = PlayerPrefs.GetInt("CurrentLevel", 1);
+        LoadLevel(levelIndex);
+    }
+
+    public void LoadLevel(int levelIndex)
+    {
+        if (!isGameStarted) return; // Oyun başlamadıysa yükleme yapma
+
+        currentLevel = LevelContainer.Instance.GetLevel(levelIndex);
+
+        if (currentLevel == null)
+        {
+            Debug.LogError($"[LevelManager] Could not load level {levelIndex}");
+            return;
+        }
+
+        InitializeLevel();
+        Debug.Log($"[LevelManager] Loaded level {levelIndex}");
+    }
+    private void Start()
+    {
+    }
+
+    #endregion
+
+    #region Initialization
+
+    public void Initialize()
+    {
+        if (!isInitialized)
+        {
+            isInitialized = true;
+            Debug.Log("LevelManager initialized");
+        }
+    }
+
+    private void InitializeEvents()
+    {
+        onStageStart ??= new StageEvent();
+        onStageComplete ??= new StageEvent();
+        onLevelComplete ??= new LevelEvent();
+        onObjectiveProgress ??= new ObjectiveEvent();
+    }
+
+    private void ValidateReferences()
+    {
+        if (cardDealer == null)
+            cardDealer = FindFirstObjectByType<CardDealer>();
+        
+        if (gameManager == null)
+            gameManager = FindFirstObjectByType<GameManager>();
+
+        if (cardDealer == null || gameManager == null)
+        {
+            Debug.LogError($"Missing required components! CardDealer: {cardDealer != null}, GameManager: {gameManager != null}");
+        }
+    }
+
+    private void InitializeLevel()
+    {
+        if (currentLevel == null)
+        {
+            Debug.LogError("[LevelManager] No level data available!");
+            return;
+        }
+
+        Debug.Log($"[LevelManager] Starting level {currentLevel.levelName} with {currentLevel.stages.Count} stages");
+        
+        // Level'ı PlayerPrefs'e kaydet
+        PlayerPrefs.SetInt("CurrentLevel", currentLevel.levelNumber);
+        PlayerPrefs.Save();
+        
+        currentStageIndex = 0;
+        StartStage(0);
+    }
+
+    #endregion
+
+    #region Stage Management
     public void StartStage(int stageIndex)
     {
-        if (stageIndex >= currentLevel.stages.Count) return;
+        if (!ValidateStageIndex(stageIndex)) return;
 
         currentStageIndex = stageIndex;
         var stage = currentLevel.stages[currentStageIndex];
         
-        // Layout'u yükle
+        Debug.Log($"Starting stage {currentStageIndex + 1} of level {currentLevel.levelName}");
+        
         LoadLayout(stage.layoutData);
-        
-        // Hedefleri sıfırla
         ResetObjectives(stage);
-        
         onStageStart?.Invoke(stage);
     }
 
-    private void ResetObjectives(StageDefinition stage)
+    private bool ValidateStageIndex(int stageIndex)
     {
-        foreach(var objective in stage.objectives)
+        if (currentLevel == null)
         {
-            objective.currentAmount = 0;
-            objective.isCompleted = false;
-        }
-    }
-
-    public void CheckStageProgress()
-    {
-        var currentStage = currentLevel.stages[currentStageIndex];
-        bool allObjectivesComplete = true;
-
-        foreach (var objective in currentStage.objectives)
-        {
-            if (!objective.isCompleted)
-            {
-                allObjectivesComplete = false;
-                break;
-            }
+            Debug.LogError("No level is currently set!");
+            return false;
         }
 
-        if (allObjectivesComplete)
+        if (stageIndex >= currentLevel.stages.Count)
         {
-            CompleteStage();
+            Debug.LogError($"Invalid stage index: {stageIndex}. Total stages: {currentLevel.stages.Count}");
+            return false;
         }
-    }
 
-    public void OnCardMatched(int cardID)
-    {
-        var stage = currentLevel.stages[currentStageIndex];
-        foreach(var objective in stage.objectives)
-        {
-            switch(objective.type)
-            {
-                case ObjectiveType.CollectSpecificCards:
-                    if(cardID == objective.specificCardID)
-                    {
-                        UpdateObjectiveProgress(objective, 1);
-                    }
-                    break;
-                
-                case ObjectiveType.CollectCardAmount:
-                    UpdateObjectiveProgress(objective, 1);
-                    break;
-
-                case ObjectiveType.MatchPairs:
-                    UpdateObjectiveProgress(objective, 1);
-                    break;
-            }
-        }
-        CheckStageProgress();
-    }
-
-    private void UpdateObjectiveProgress(StageObjective objective, int amount)
-    {
-        objective.currentAmount += amount;
-        if(objective.currentAmount >= objective.targetAmount)
-        {
-            objective.isCompleted = true;
-        }
-        onObjectiveProgress?.Invoke(objective);
+        return true;
     }
 
     private void CompleteStage()
@@ -106,30 +218,188 @@ public class LevelManager : MonoBehaviour
         currentStage.isCompleted = true;
         onStageComplete?.Invoke(currentStage);
 
-        if (currentStageIndex >= currentLevel.stages.Count - 1)
+        Debug.Log($"Stage {currentStageIndex + 1} completed. Total stages: {currentLevel.stages.Count}");
+
+        if (currentStageIndex < currentLevel.stages.Count - 1)
         {
-            CompleteLevel();
+            Debug.Log($"Moving to next stage {currentStageIndex + 2}");
+            StartCoroutine(TransitionToNextStage());
         }
         else
         {
-            StartCoroutine(TransitionToNextStage());
+            Debug.Log("This was the last stage, completing level");
+            CompleteLevel();
         }
     }
 
     private IEnumerator TransitionToNextStage()
     {
-        // Aşama geçiş animasyonu için bekleme
-        yield return new WaitForSeconds(1.5f);
-        StartStage(currentStageIndex + 1);
+        Debug.Log("Starting transition to next stage...");
+        
+        cardDealer?.ClearCurrentCards();
+        yield return new WaitForSeconds(stageTransitionDelay);
+        
+        currentStageIndex++;
+        Debug.Log($"Transitioning to stage {currentStageIndex + 1}");
+        
+        StartStage(currentStageIndex);
+    }
+    #endregion
+
+    #region Objective Management
+    public void OnCardMatched(int cardID)
+    {
+        Debug.Log($"Card matched - ID: {cardID}"); // Debug için ekleyin
+        var stage = currentLevel.stages[currentStageIndex];
+        var totalMatched = 0; // Toplam eşleşme sayısını tut
+
+        foreach (var objective in stage.objectives)
+        {
+            UpdateObjectiveForCard(objective, cardID);
+            
+            // Debug çıktısı ekleyin
+            Debug.Log($"Objective Progress - Type: {objective.type}, Current: {objective.currentAmount}, Target: {objective.targetAmount}");
+        }
+        
+        CheckStageProgress();
     }
 
+    private void UpdateObjectiveForCard(StageObjective objective, int cardID)
+    {
+        // UpdateObjectiveProgress metodunu KALDIR, direkt burada güncelle
+        switch (objective.type)
+        {
+            case ObjectiveType.CollectSpecificCards:
+                if (cardID == objective.specificCardID)
+                {
+                    objective.currentAmount += 3; // Sadece 3 kart ekle
+                    Debug.Log($"Added 3 specific cards (ID: {cardID}). Current: {objective.currentAmount}/{objective.targetAmount}");
+                }
+                break;
+            
+            case ObjectiveType.CollectCardAmount:
+                objective.currentAmount += 3; // Sadece 3 kart ekle
+                Debug.Log($"Added 3 cards. Current: {objective.currentAmount}/{objective.targetAmount}");
+                break;
+
+            case ObjectiveType.MatchPairs:
+                objective.currentAmount += 1; // 1 eşleşme ekle
+                Debug.Log($"Added 1 match. Current: {objective.currentAmount}/{objective.targetAmount}");
+                break;
+        }
+
+        // Tamamlanma kontrolü
+        if (objective.currentAmount >= objective.targetAmount)
+        {
+            objective.isCompleted = true;
+            Debug.Log($"Objective completed: {objective.type}");
+        }
+
+        // UI'ı güncelle
+        onObjectiveProgress?.Invoke(objective);
+    }
+
+    public void CheckStageProgress()
+    {
+        var currentStage = currentLevel.stages[currentStageIndex];
+        int totalObjectives = currentStage.objectives.Count;
+        int completedObjectives = 0;
+
+        foreach(var objective in currentStage.objectives)
+        {
+            if(objective.CheckCompletion())
+            {
+                completedObjectives++;
+            }
+            
+            // Debug için her objective'in durumunu yazdır
+            Debug.Log($"Objective: {objective.type}, Progress: {objective.currentAmount}/{objective.targetAmount}, Completed: {objective.isCompleted}");
+        }
+
+        Debug.Log($"Stage Progress: {completedObjectives}/{totalObjectives} objectives completed");
+
+        if (completedObjectives == totalObjectives)
+        {
+            Debug.Log("All objectives completed, completing stage");
+            CompleteStage();
+        }
+    }
+
+    public void ResetObjectives(StageDefinition stage)
+    {
+        if (stage == null) return;
+
+        foreach (var objective in stage.objectives)
+        {
+            objective.currentAmount = 0;
+            objective.isCompleted = false;
+        }
+    }
+    #endregion
+
+    #region Layout Management
+    private void LoadLayout(LayoutData layout)
+    {
+        if (layout == null)
+        {
+            Debug.LogError("Layout data is null!");
+            return;
+        }
+
+        Debug.Log($"Loading layout: {layout.layoutName} with {layout.positions.Count} positions");
+
+        if (cardDealer != null)
+        {
+            cardDealer.ClearCurrentCards();
+            cardDealer.SetLayout(layout);
+            
+            var currentStage = currentLevel.stages[currentStageIndex];
+            cardDealer.InitializeStage(currentStage);
+            
+            Debug.Log($"Stage {currentStageIndex + 1} initialized with layout: {layout.layoutName}");
+        }
+        else
+        {
+            Debug.LogError("CardDealer not found! Make sure CardDealer component exists in the scene.");
+        }
+    }
+    #endregion
+
+    #region Level Management
     private void CompleteLevel()
     {
+        Debug.Log($"Completing level: {currentLevel.levelName}");
         onLevelComplete?.Invoke(currentLevel);
     }
 
-    private void LoadLayout(LayoutData layout)
+    public void ResetLevel()
     {
-        // Mevcut kart yerleştirme sisteminizi buraya entegre edin
+        isGameStarted = false;
+        enabled = false;
+        
+        cardDealer?.ClearCurrentCards();
+        currentStageIndex = 0;
+        
+        if (currentLevel != null)
+        {
+            foreach (var stage in currentLevel.stages)
+            {
+                stage.isCompleted = false;
+                ResetObjectives(stage);
+            }
+        }
+
+        ClearEventListeners();
+        currentLevel = null;
+        Debug.Log("Level Manager reset completed");
     }
+
+    private void ClearEventListeners()
+    {
+        onStageStart?.RemoveAllListeners();
+        onStageComplete?.RemoveAllListeners();
+        onLevelComplete?.RemoveAllListeners();
+        onObjectiveProgress?.RemoveAllListeners();
+    }
+    #endregion
 }

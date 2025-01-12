@@ -18,7 +18,6 @@ public class LevelSelectManager : MonoBehaviour
 
     [Header("Level Data")]
     public LevelDefinition[] levelDefinitions; // Tüm seviye tanımlamaları
-    public CardDealer cardDealer;
 
     void Start()
     {

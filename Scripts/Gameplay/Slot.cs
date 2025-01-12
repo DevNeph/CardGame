@@ -23,24 +23,20 @@ public class Slot : MonoBehaviour
         isOccupied = true;
         occupantCard = card;
 
-        // Kartın parent'ını bu slot yap, global pozisyonu korumaya gerek yok
-        card.transform.SetParent(this.transform, false);
-
-        // Kartı slotun merkezine yerleştir
+        // Kartın transform işlemlerini optimize et
+        card.transform.SetParent(transform, true);
         card.transform.localPosition = Vector3.zero;
         card.transform.localRotation = Quaternion.identity;
-        // Kartı görünür kıl (gerekirse)
+
+        // Kartı görünür kıl
         card.RevealCard();
 
-        // Render sırasını kartın ön plana çıkması için ayarla
+        // Render sırasını ayarla
         var spriteRenderer = card.GetComponent<SpriteRenderer>();
         if (spriteRenderer != null)
         {
-            spriteRenderer.sortingLayerName = "Default"; // uygun layer adı
-            spriteRenderer.sortingOrder = 9;           // öne çıkması için yüksek bir değer
+            spriteRenderer.sortingOrder = 9;
         }
-
-        Debug.Log($"Placed card (ID={card.cardID}) into slot {gameObject.name}");
     }
 
 

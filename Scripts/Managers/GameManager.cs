@@ -1,436 +1,530 @@
 using UnityEngine;
-using UnityEngine.UI;
 using System.Collections;
 using System.Collections.Generic;
-using TMPro;
+using System.Threading.Tasks;
+using System.Linq;
 
 public class GameManager : MonoBehaviour
 {
-    [Header("Slots")]
-    public Slot[] slots;
+    public static GameManager Instance { get; private set; }
+    
+    [Header("Slot Configuration")]
+    [SerializeField] private GameObject slotPrefab;
+    [SerializeField] private Transform slotParent; // Slot'ların parent'ı (opsiyonel)
+    
+    private readonly Vector3[] slotPositions = new Vector3[]
+    {
+        new Vector3(-2.4f, -4f, 0f),
+        new Vector3(-1.6f, -4f, 0f),
+        new Vector3(-0.8f, -4f, 0f),
+        new Vector3(0f, -4f, 0f),
+        new Vector3(0.8f, -4f, 0f),
+        new Vector3(1.6f, -4f, 0f),
+        new Vector3(2.5f, -4f, 0f)
+    };
 
-    [Header("UI Elements")]
-    public TextMeshProUGUI removedCardsText;
-    public TextMeshProUGUI targetCardsText; // Yeni eklenen UI element
-    public TextMeshProUGUI cardIDText;
-
-    [Header("Level Settings")]
-    public LevelDefinition[] levelDefinitions;    
-    private int currentLevelIndex = 0;            
-    private LevelDefinition currentLevelDefinition; 
-
-    [Header("Level Complete UI")]
-    public GameObject levelCompletePanel;
-
-    [Header("Level Failed UI")]
-    public GameObject levelFailedPanel;
-
-    private int removedCardCount = 0;
-    public Vector3[] slotPositions;
+    private Slot[] slots;
     private bool[] slotOccupied;
+    private int removedCardCount = 0;
     private Dictionary<int, int> collectedCards = new Dictionary<int, int>();
+    private LevelManager levelManager;
+    private CardDealer cardDealer;
+
+    public static bool IsPopupActive { get; set; }
+
+    #region Unity Lifecycle
 
     private void Awake()
     {
-        Debug.Log("GameManager Awake - Oyun başlatılıyor");
+        if (Instance != null)
+        {
+            Debug.Log("[GameManager] Instance already exists. Destroying duplicate.");
+            Destroy(gameObject);
+            return;
+        }
+
+        Instance = this;
+        DontDestroyOnLoad(gameObject);
+
+        // Componentleri al
+        levelManager = GetComponent<LevelManager>();
+        cardDealer = GetComponent<CardDealer>();
+
+        if (levelManager == null || cardDealer == null)
+        {
+            Debug.LogError("[GameManager] Required components missing!");
+            return;
+        }
+
+        // Slot prefab kontrolü
+        if (slotPrefab == null)
+        {
+            Debug.LogError("[GameManager] Slot prefab is not assigned!");
+            return;
+        }
+
+        // Parent yoksa oluştur
+        if (slotParent == null)
+        {
+            GameObject parentObj = new GameObject("Slots");
+            parentObj.transform.SetParent(transform);
+            slotParent = parentObj.transform;
+        }
+
+        CreateSlots();
+        Debug.Log("[GameManager] Initialized successfully.");
     }
 
     private void Start()
     {
-        removedCardCount = 0;
+        InitializeSlots();
+        SetupEventListeners();
+    }
+
+    private void OnDestroy()
+    {
+        if (levelManager != null)
+        {
+            RemoveEventListeners();
+        }
+    }
+
+    #endregion
+    #region Slots
+    private void CreateSlots()
+    {
+        slots = new Slot[slotPositions.Length];
         slotOccupied = new bool[slotPositions.Length];
 
-        // Seçilen seviyeyi kontrol et ve başlat
-        if(LevelSelection.selectedLevel != null)
+        for (int i = 0; i < slotPositions.Length; i++)
         {
-            StartLevel(LevelSelection.selectedLevel);
-            UpdateAllCardsAppearance();
-        }
-        else
-        {
-            if(levelDefinitions != null && levelDefinitions.Length > 0)
+            // Slot'u oluştur
+            GameObject slotObj = Instantiate(slotPrefab, slotPositions[i], Quaternion.identity, slotParent);
+            slotObj.name = $"Slot_{i}";
+
+            // Slot component'ini al
+            Slot slot = slotObj.GetComponent<Slot>();
+            if (slot == null)
             {
-                currentLevelIndex = 0;
-                currentLevelDefinition = levelDefinitions[currentLevelIndex];
+                Debug.LogError($"[GameManager] Slot component missing on prefab!");
+                continue;
             }
-        }
 
-        if(levelCompletePanel != null)
-        {
-            levelCompletePanel.SetActive(true);
-            Button returnButton = levelCompletePanel.GetComponentInChildren<Button>();
-            if(returnButton != null)
-            {
-                returnButton.onClick.AddListener(ReturnToMainMenu);
-            }
-        }
-
-        if (targetCardsText == null)
-            Debug.LogWarning("targetCardsText is not assigned!");
-        if (cardIDText == null)
-            Debug.LogWarning("cardIDText is not assigned!");
-
-        InitializeCollectedCards();
-        UpdateRemovedCardText();
-
-        if (levelCompletePanel != null)
-        {
-            levelCompletePanel.SetActive(false);
+            // Slot'u kaydet ve initialize et
+            slots[i] = slot;
+            slotOccupied[i] = false;
+            
+            // Pozisyonu ayarla
+            slotObj.transform.localPosition = slotPositions[i];
         }
     }
 
-    public void StartLevel(LevelDefinition levelDefinition)
+        // Slot işlemleri için yardımcı metodlar
+    public bool IsSlotAvailable(int index)
     {
-        currentLevelDefinition = levelDefinition;
+        return index >= 0 && index < slotOccupied.Length && !slotOccupied[index];
+    }
+
+    public Slot GetSlot(int index)
+    {
+        if (index >= 0 && index < slots.Length)
+            return slots[index];
+        return null;
+    }
+
+    public Vector3 GetSlotPosition(int index)
+    {
+        if (index >= 0 && index < slotPositions.Length)
+            return slotPositions[index];
+        return Vector3.zero;
+    }
+
+    public int FindEmptySlotIndex()
+    {
+        for (int i = 0; i < slotOccupied.Length; i++)
+        {
+            if (!slotOccupied[i]) return i;
+        }
+        return -1;
+    }
+    
+    #endregion
+    #region Initialization
+
+    private void InitializeComponents()
+    {
+        // Component referanslarını kontrol et
+        if (levelManager == null) levelManager = GetComponent<LevelManager>();
+        if (cardDealer == null) cardDealer = GetComponent<CardDealer>();
+
+        // Null check
+        if (levelManager == null || cardDealer == null)
+        {
+            Debug.LogError($"Missing required components! LevelManager: {levelManager != null}, CardDealer: {cardDealer != null}");
+        }
+
+        // Slot kontrolü
+        if (slots == null || slots.Length == 0)
+        {
+            Debug.LogError("No slots assigned!");
+        }
+
+        if (slotPositions == null || slotPositions.Length == 0)
+        {
+            Debug.LogError("No slot positions assigned!");
+        }
+
+        if (slots.Length != slotPositions.Length)
+        {
+            Debug.LogError($"Slot count ({slots.Length}) does not match position count ({slotPositions.Length})!");
+        }
+    }
+
+    private void InitializeSlots()
+    {
         removedCardCount = 0;
-        InitializeCollectedCards();
-        UpdateRemovedCardText();
+        slotOccupied = new bool[slotPositions.Length];
+        collectedCards.Clear();
         
-        if(levelCompletePanel != null)
-            levelCompletePanel.SetActive(false);
-        
-        Debug.Log("Starting Level: " + levelDefinition.levelName);
+        // UI güncelleme
+        if (UIManager.Instance != null)
+        {
+            UIManager.Instance.UpdateRemovedCardText(removedCardCount);
+        }
     }
 
-    private void Update()
+    private void SetupEventListeners()
     {
+        if (levelManager != null)
+        {
+            // Event listener'ları ekle
+            levelManager.onStageStart.AddListener(OnStageStart);
+            levelManager.onStageComplete.AddListener(OnStageComplete);
+            levelManager.onLevelComplete.AddListener(OnLevelComplete);
+            levelManager.onObjectiveProgress.AddListener(OnObjectiveProgress);
+        }
     }
 
-    public static bool IsPopupActive = false;
+    private void RemoveEventListeners()
+    {
+        // Event listener'ları temizle
+        levelManager.onStageStart.RemoveListener(OnStageStart);
+        levelManager.onStageComplete.RemoveListener(OnStageComplete);
+        levelManager.onLevelComplete.RemoveListener(OnLevelComplete);
+        levelManager.onObjectiveProgress.RemoveListener(OnObjectiveProgress);
+    }
+
+    #endregion
+
+    #region Game Flow Control
+
+    public async Task StartGame(LevelDefinition level)
+    {
+        if (level == null)
+        {
+            Debug.LogError("Cannot start game: Level is null!");
+            return;
+        }
+
+        IsPopupActive = false;
+        InitializeSlots();
+
+        if (levelManager != null)
+        {
+            await Task.Yield(); // Frame geçişi için bekle
+            levelManager.currentLevel = level;
+            levelManager.StartGame();
+        }
+    }
+
+    public void ResetGame()
+    {
+        IsPopupActive = false;
+        ClearAllCards();
+        InitializeSlots();
+        collectedCards.Clear();
+        removedCardCount = 0;
+
+        if (levelManager != null)
+        {
+            levelManager.ResetLevel();
+        }
+    }
+
+    #endregion
+
+    #region Card Management
 
     public void OnCardClicked(Card clickedCard)
     {
-        if (IsPopupActive)
+        if (IsPopupActive || clickedCard == null)
         {
-            Debug.Log("Popup aktif, tıklama engellendi.");
+            Debug.Log("Card click ignored: popup active or card null");
             return;
         }
 
         int slotIndex = FindFirstEmptySlotIndex();
         if (slotIndex == -1)
         {
-            Debug.Log("Boş slot kalmadı!");
-            ShowLevelFailedPanel();
+            Debug.Log("No empty slots available!");
+            UIManager.Instance?.ShowLevelFailedPanel();
             return;
         }
 
-        Slot freeSlot = slots[slotIndex];
-        freeSlot.transform.position = slotPositions[slotIndex];
-        slotOccupied[slotIndex] = true;
-        freeSlot.PlaceCard(clickedCard);
-
-        bool matchFound = CheckAndRemoveMatches(clickedCard.cardID);
-
-        if (slotIndex == slots.Length - 1 && !matchFound)
-        {
-            ShowLevelFailedPanel();
-            return;
-        }
-
-        StartCoroutine(DelayedCheckAndRemove(clickedCard.cardID, 0.0f));
-
-        clickedCard.PlaceInSlot();
-        UpdateAllCardsAppearance();
+        // Coroutine yerine direkt metod çağrısı
+        PlaceCardInSlot(clickedCard, slotIndex);
     }
 
-    public void UpdateAllCardsAppearance()
+
+    private IEnumerator PlaceCardInSlotCoroutine(Card card, int slotIndex)
     {
-        Card[] allCards = Object.FindObjectsByType<Card>(FindObjectsSortMode.None);
-        foreach (Card card in allCards)
+        if (slotIndex >= 0 && slotIndex < slots.Length)
         {
-            card.UpdateCardAppearance();
-        }
-    }
+            Slot slot = slots[slotIndex];
+            Vector3 startPos = card.transform.position;
+            Vector3 targetPos = slotPositions[slotIndex];
+            float duration = 0;
+            float elapsed = 0;
 
-    public void AddRemovedCard(int count)
-    {
-        removedCardCount += count;
-        Debug.Log("Removed card count updated to: " + removedCardCount);
-        UpdateRemovedCardText();
-        CheckLevelCompletion();
-    }
-
-    private int GetLevelNumber(LevelDefinition levelDefinition)
-    {
-        return levelDefinition.levelNumber;
-    }
-
-    private void CheckLevelCompletion()
-    {
-        if (currentLevelDefinition == null) return;
-
-        bool totalCardsCompleted = false;
-        bool specificCardsCompleted = false;
-
-        // Toplam kart hedefi kontrolü
-        if (currentLevelDefinition.completionType == LevelCompletionType.TotalCards || 
-            currentLevelDefinition.completionType == LevelCompletionType.BothConditions)
-        {
-            totalCardsCompleted = removedCardCount >= currentLevelDefinition.cardsToCollect;
-        }
-
-        // Spesifik kart hedefi kontrolü
-        if (currentLevelDefinition.completionType == LevelCompletionType.SpecificCards || 
-            currentLevelDefinition.completionType == LevelCompletionType.BothConditions)
-        {
-            specificCardsCompleted = true;
-            foreach (var target in currentLevelDefinition.collectionTargets)
+            while (elapsed < duration)
             {
-                if (!collectedCards.ContainsKey(target.cardID) || 
-                    collectedCards[target.cardID] < target.requiredCount)
-                {
-                    specificCardsCompleted = false;
-                    break;
-                }
+                elapsed += Time.deltaTime;
+                float t = elapsed / duration;
+                card.transform.position = Vector3.Lerp(startPos, targetPos, t);
+                yield return null;
             }
-        }
 
-        // Level tamamlanma kontrolü
-        bool levelCompleted = false;
-        switch (currentLevelDefinition.completionType)
-        {
-            case LevelCompletionType.TotalCards:
-                levelCompleted = totalCardsCompleted;
-                break;
-            case LevelCompletionType.SpecificCards:
-                levelCompleted = specificCardsCompleted;
-                break;
-            case LevelCompletionType.BothConditions:
-                levelCompleted = totalCardsCompleted && specificCardsCompleted;
-                break;
-        }
-
-        if (levelCompleted)
-        {
-            LevelComplete();
-        }
-    }
-
-    private void UpdateRemovedCardText()
-    {
-        if (removedCardsText == null || currentLevelDefinition == null) return;
-
-        string mainText = "";
-        string targetText = "";
-        string idText = "";
-
-        // Toplam kart hedefi gösterimi
-        if (currentLevelDefinition.completionType == LevelCompletionType.TotalCards || 
-            currentLevelDefinition.completionType == LevelCompletionType.BothConditions)
-        {
-            mainText = $"Toplam: {removedCardCount}/{currentLevelDefinition.cardsToCollect}";
-        }
-
-        // Spesifik kart hedefi gösterimi
-        if (currentLevelDefinition.completionType == LevelCompletionType.SpecificCards || 
-            currentLevelDefinition.completionType == LevelCompletionType.BothConditions)
-        {
-            if (currentLevelDefinition.collectionTargets != null && 
-                currentLevelDefinition.collectionTargets.Count > 0)
-            {
-                var target = currentLevelDefinition.collectionTargets[0];
-                int collected = collectedCards.ContainsKey(target.cardID) ? 
-                            collectedCards[target.cardID] : 0;
-                
-                targetText = $"{collected}/{target.requiredCount}";
-                idText = $"Hedef Kart ID: {target.cardID}";
-            }
-        }
-
-        // UI güncelleme
-        removedCardsText.text = mainText;
-        
-        if (targetCardsText != null)
-        {
-            targetCardsText.text = targetText;
-            targetCardsText.gameObject.SetActive(
-                currentLevelDefinition.completionType == LevelCompletionType.SpecificCards || 
-                currentLevelDefinition.completionType == LevelCompletionType.BothConditions);
-        }
-        
-        if (cardIDText != null)
-        {
-            cardIDText.text = idText;
-            cardIDText.gameObject.SetActive(
-                currentLevelDefinition.completionType == LevelCompletionType.SpecificCards || 
-                currentLevelDefinition.completionType == LevelCompletionType.BothConditions);
-        }
-    }
-
-    private void InitializeCollectedCards()
-    {
-        collectedCards.Clear();
-        if (currentLevelDefinition != null && 
-            currentLevelDefinition.collectionTargets != null)
-        {
-            foreach (var target in currentLevelDefinition.collectionTargets)
-            {
-                collectedCards[target.cardID] = 0;
-            }
+            // Final pozisyonu garantile
+            card.transform.position = targetPos;
             
-            // Başlangıç UI güncellemesi
-            UpdateRemovedCardText();
-        }
-    }
+            // Kartı slota yerleştir
+            slot.PlaceCard(card);
+            card.PlaceInSlot();
+            slotOccupied[slotIndex] = true;
 
-    private int FindFirstEmptySlotIndex()
-    {
-        for (int i = 0; i < slotOccupied.Length; i++)
-        {
-            if (!slotOccupied[i])
-                return i;
-        }
-        return -1;
-    }
+            // Eşleşmeleri kontrol et
+            bool matchFound = CheckAndRemoveMatches(card.cardID);
 
-    private Slot FindFirstEmptySlot()
-    {
-        for (int i = 0; i < slots.Length; i++)
-        {
-            if (!slots[i].isOccupied)
+            if (slotIndex == slots.Length - 1 && !matchFound)
             {
-                return slots[i];
+                UIManager.Instance?.ShowLevelFailedPanel();
             }
+
+            UpdateAllCardsAppearance();
         }
-        return null;
+    }
+
+    private void PlaceCardInSlot(Card card, int slotIndex)
+    {
+        if (slotIndex >= 0 && slotIndex < slots.Length)
+        {
+            Slot slot = slots[slotIndex];
+            
+            // Kartı direkt olarak hedef pozisyona yerleştir
+            card.transform.position = slotPositions[slotIndex];
+            
+            // Kartı slota yerleştir
+            slot.PlaceCard(card);
+            card.PlaceInSlot();
+            slotOccupied[slotIndex] = true;
+
+            // Eşleşmeleri kontrol et
+            bool matchFound = CheckAndRemoveMatches(card.cardID);
+
+            if (slotIndex == slots.Length - 1 && !matchFound)
+            {
+                UIManager.Instance?.ShowLevelFailedPanel();
+            }
+
+            UpdateAllCardsAppearance();
+        }
     }
 
     private bool CheckAndRemoveMatches(int cardID)
     {
-        int count = 0;
-        for (int i = 0; i < slots.Length; i++)
-        {
-            if (slots[i].isOccupied && slots[i].occupantCard != null)
-            {
-                if (slots[i].occupantCard.cardID == cardID)
-                {
-                    count++;
-                }
-            }
-        }
+        // Eşleşen kartları say
+        int count = CountMatchingCards(cardID);
 
         if (count >= 3)
         {
-            Debug.Log($"ID={cardID} karttan {count} tane bulundu. Hepsini yok ediyoruz!");
-            int destroyed = 0;
-
-            for (int i = 0; i < slots.Length; i++)
-            {
-                if (slots[i].isOccupied && slots[i].occupantCard != null && 
-                    slots[i].occupantCard.cardID == cardID)
-                {
-                    Destroy(slots[i].occupantCard.gameObject);
-                    slots[i].ClearSlot();
-                    slotOccupied[i] = false;
-                    destroyed++;
-
-                    // Spesifik kart sayacını güncelle
-                    if (collectedCards.ContainsKey(cardID))
-                    {
-                        collectedCards[cardID] += 1;
-                    }
-                }
-            }
-
-            AddRemovedCard(destroyed);
+            RemoveMatchingCards(cardID);
             ShiftCardsLeft();
+            levelManager?.OnCardMatched(cardID);
             return true;
         }
 
         return false;
     }
 
-    private IEnumerator DelayedCheckAndRemove(int cardID, float delay)
+    private int CountMatchingCards(int cardID)
     {
-        yield return new WaitForSeconds(delay);
-        CheckAndRemoveMatches(cardID);
+        int count = 0;
+        for (int i = 0; i < slots.Length; i++)
+        {
+            if (slots[i].isOccupied && 
+                slots[i].occupantCard != null && 
+                slots[i].occupantCard.cardID == cardID)
+            {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    private void RemoveMatchingCards(int cardID)
+    {
+        int destroyed = 0;
+
+        for (int i = 0; i < slots.Length; i++)
+        {
+            if (slots[i].isOccupied && slots[i].occupantCard != null && slots[i].occupantCard.cardID == cardID)
+            {
+                Destroy(slots[i].occupantCard.gameObject);
+                slots[i].ClearSlot();
+                slotOccupied[i] = false;
+                destroyed++;
+            }
+        }
+
+        AddRemovedCard(destroyed);
+    }
+
+    #endregion
+
+    #region Helper Methods
+
+    public void UpdateAllCardsAppearance()
+    {
+        // Tüm kartları bul
+        var allCards = FindObjectsByType<Card>(FindObjectsSortMode.None);
+        foreach (var card in allCards)
+        {
+            if (card != null)
+            {
+                card.UpdateCardAppearance();
+            }
+        }
     }
 
     private void ShiftCardsLeft()
     {
-        for (int i = 0; i < slots.Length; i++)
+        bool shifted;
+        do
         {
-            if (!slots[i].isOccupied)
+            shifted = false;
+            for (int i = 0; i < slots.Length - 1; i++)
             {
-                for (int j = i + 1; j < slots.Length; j++)
+                if (!slots[i].isOccupied && slots[i + 1].isOccupied)
                 {
-                    if (slots[j].isOccupied)
-                    {
-                        Card movingCard = slots[j].occupantCard;
-                        slots[i].PlaceCard(movingCard);
-                        slotOccupied[i] = true;
-                        slots[j].ClearSlot();
-                        slotOccupied[j] = false;
-                        movingCard.transform.position = slotPositions[i];
-                        break;
-                    }
+                    MoveCardToSlot(i + 1, i);
+                    shifted = true;
                 }
+            }
+        } while (shifted);
+
+        UpdateAllCardsAppearance();
+    }
+
+    private void MoveCardToSlot(int fromIndex, int toIndex)
+    {
+        if (fromIndex < 0 || fromIndex >= slots.Length || 
+            toIndex < 0 || toIndex >= slots.Length)
+            return;
+
+        Card movingCard = slots[fromIndex].occupantCard;
+        if (movingCard == null) return;
+
+        // Önce eski slotu temizle
+        slots[fromIndex].ClearSlot();
+        slotOccupied[fromIndex] = false;
+
+        // Yeni slota yerleştir
+        slots[toIndex].PlaceCard(movingCard);
+        slotOccupied[toIndex] = true;
+        movingCard.transform.position = slotPositions[toIndex];
+    }
+
+    private int FindFirstEmptySlotIndex()
+    {
+        for (int i = 0; i < slotOccupied.Length; i++)
+        {
+            if (!slotOccupied[i]) return i;
+        }
+        return -1;
+    }
+
+    private void ClearAllCards()
+    {
+        var allCards = FindObjectsByType<Card>(FindObjectsSortMode.None);
+        foreach (var card in allCards)
+        {
+            Destroy(card.gameObject);
+        }
+
+        foreach (var slot in slots)
+        {
+            slot.ClearSlot();
+        }
+    }
+
+    #endregion
+
+    #region Event Handlers
+
+    private void OnStageStart(StageDefinition stage)
+    {
+        Debug.Log($"Starting Stage {levelManager.currentStageIndex + 1}");
+        InitializeSlots();
+        
+        cardDealer?.InitializeStage(stage);
+        UIManager.Instance?.UpdateRemovedCardText(removedCardCount);
+        UIManager.Instance?.UpdateObjectiveUI(stage);
+    }
+
+    private void OnStageComplete(StageDefinition stage)
+    {
+        Debug.Log($"Stage {levelManager.currentStageIndex + 1} completed!");
+        ClearAllCards();
+        InitializeSlots();
+    }
+
+    private void OnLevelComplete(LevelDefinition level)
+    {
+        Debug.Log($"Level {level.levelName} completed!");
+        UIManager.Instance?.ShowLevelCompletePanel();
+        SaveProgress(level);
+    }
+
+    private void OnObjectiveProgress(StageObjective objective)
+    {
+        UIManager.Instance?.UpdateObjectiveProgress(objective);
+    }
+
+    #endregion
+
+    #region Progress Management
+
+    public void AddRemovedCard(int count)
+    {
+        removedCardCount += count;
+        Debug.Log($"Removed card count updated to: {removedCardCount}");
+        UIManager.Instance?.UpdateRemovedCardText(removedCardCount);
+    }
+
+    private void SaveProgress(LevelDefinition level)
+    {
+        if (level != null)
+        {
+            int currentLevelNumber = level.levelNumber;
+            int highestCompleted = PlayerPrefs.GetInt("HighestCompletedLevel", 0);
+            
+            if (currentLevelNumber > highestCompleted)
+            {
+                PlayerPrefs.SetInt("HighestCompletedLevel", currentLevelNumber);
+                PlayerPrefs.Save();
             }
         }
     }
 
-    private void ShowLevelFailedPanel()
-    {
-        IsPopupActive = true;
-
-        if (levelFailedPanel != null)
-        {
-            GameObject canvas = GameObject.Find("Canvas");
-            if (canvas != null)
-            {
-                GameObject panelInstance = Instantiate(levelFailedPanel, canvas.transform);
-
-                Button button = panelInstance.GetComponentInChildren<Button>();
-                if (button != null)
-                {
-                    button.onClick.AddListener(() =>
-                    {
-                        IsPopupActive = false;
-                        ReturnToMainMenu();
-                    });
-                }
-
-                panelInstance.SetActive(true);
-            }
-        }
-    }
-
-    private void LevelComplete()
-    {
-        IsPopupActive = true;
-
-        if (levelCompletePanel != null)
-        {
-            GameObject canvas = GameObject.Find("Canvas");
-            if (canvas != null)
-            {
-                GameObject panelInstance = Instantiate(levelCompletePanel, canvas.transform);
-
-                Button button = panelInstance.GetComponentInChildren<Button>();
-                if (button != null)
-                {
-                    button.onClick.AddListener(() =>
-                    {
-                        IsPopupActive = false;
-                        ReturnToMainMenu();
-                    });
-                }
-
-                panelInstance.SetActive(true);
-            }
-        }
-
-        int currentLevelNumber = GetLevelNumber(currentLevelDefinition);
-        int highestCompleted = PlayerPrefs.GetInt("HighestCompletedLevel", 0);
-        if (currentLevelNumber > highestCompleted)
-        {
-            PlayerPrefs.SetInt("HighestCompletedLevel", currentLevelNumber);
-            PlayerPrefs.Save();
-        }
-    }
-
-    public void ReturnToMainMenu()
-    {
-        UnityEngine.SceneManagement.SceneManager.LoadScene("MainMenu");
-    }
+    #endregion
 }

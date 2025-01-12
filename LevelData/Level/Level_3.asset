@@ -14,7 +14,23 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   levelName: Level 3
   levelNumber: 3
-  layoutData: {fileID: 11400000, guid: 5eef52eb484092d47804ac1e469e04b7, type: 2}
-  allowedCardIDs: 0000000001000000020000000e0000000f000000
-  totalCards: 18
-  cardsToCollect: 18
+  stages:
+  - stageName: Level3-1
+    layoutData: {fileID: 11400000, guid: 5eef52eb484092d47804ac1e469e04b7, type: 2}
+    allowedCardIDs: 0000000001000000020000000d0000000e000000
+    totalCards: 18
+    cardsToCollect: 18
+    isCompleted: 0
+    timeLimit: 0
+    moveLimit: 0
+    completionType: 2
+    collectionTargets: []
+    objectives:
+    - type: 1
+      description: 
+      targetAmount: 6
+      currentAmount: 0
+      specificCardID: 13
+      isCompleted: 0
+  levelThumbnail: {fileID: 0}
+  starsRequired: 0

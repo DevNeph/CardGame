@@ -14,7 +14,17 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   levelName: Level 1
   levelNumber: 1
-  layoutData: {fileID: 11400000, guid: 7ff7be70d7ee2af4b8dbbac0213f3a7e, type: 2}
-  allowedCardIDs: 000000000100000002000000
-  totalCards: 9
-  cardsToCollect: 9
+  stages:
+  - stageName: Level1-1
+    layoutData: {fileID: 11400000, guid: 7ff7be70d7ee2af4b8dbbac0213f3a7e, type: 2}
+    allowedCardIDs: 0000000001000000
+    totalCards: 9
+    cardsToCollect: 9
+    isCompleted: 0
+    timeLimit: 0
+    moveLimit: 0
+    completionType: 0
+    collectionTargets: []
+    objectives: []
+  levelThumbnail: {fileID: 0}
+  starsRequired: 0
