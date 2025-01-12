@@ -12,6 +12,7 @@ public class UIManager : MonoBehaviour
     [SerializeField] private GameObject loadingScreenPrefab;
     [SerializeField] private GameObject mainMenuUIPrefab;  
     [SerializeField] private GameObject gameplayUIPrefab;
+    [SerializeField] private CardDataList cardDataList;
 
     private GameObject currentMainMenuUI;
     private GameObject currentGameplayUI;
@@ -70,6 +71,10 @@ public class UIManager : MonoBehaviour
             Instance = this;
             DontDestroyOnLoad(gameObject);
             
+            // Referansları al
+            gameManager = FindFirstObjectByType<GameManager>();
+            levelManager = FindFirstObjectByType<LevelManager>();
+
             // Ana Canvas'ı bul veya oluştur
             Canvas mainCanvas = FindFirstObjectByType<Canvas>();
             if (mainCanvas == null)
@@ -132,42 +137,47 @@ public class UIManager : MonoBehaviour
 
     public void ShowMainMenu()
     {
+        // Önce GameplayUI'ı temizle
         if (currentGameplayUI != null)
         {
             Destroy(currentGameplayUI);
             currentGameplayUI = null;
         }
+
+        // Sonra MainMenuUI'ı kur
         SetupMainMenuUI();
     }
 
-    public async Task StartGame()
+    public async Task StartGame(LevelDefinition level)
     {
-        Debug.Log("StartGame method called");
-        
+        if (level == null)
+        {
+            Debug.LogError("Cannot start game: Level is null!");
+            return;
+        }
+
+        // GameManager referanslarını kullan
+        GameManager.IsPopupActive = false;
+
+        // Mevcut UI'ları temizle
         if (currentMainMenuUI != null)
         {
-            currentMainMenuUI.SetActive(false);  // Ana menüyü gizle
+            currentMainMenuUI.SetActive(false);
+            Destroy(currentMainMenuUI);
+            currentMainMenuUI = null;
         }
-        
-        // Önce GameplayUI'ı hazırla
+
+        // Yeni GameplayUI'ı hazırla
         SetupGameplayUI();
-        
-        // Level'ı yükle ve oyunu başlat
-        int currentLevel = PlayerPrefs.GetInt("CurrentLevel", 1);
-        LevelDefinition levelToLoad = LevelContainer.Instance.GetLevel(currentLevel);
-        
-        if (gameManager != null && levelToLoad != null)
+
+        // Level'ı yükle
+        if (levelManager != null)
         {
-            currentGameplayUI.SetActive(true);  // GameplayUI'ı göster
-            await gameManager.StartGame(levelToLoad);
-        }
-        else
-        {
-            Debug.LogError("GameManager or Level is null!");
-            ReturnToMainMenu(); // Hata durumunda ana menüye dön
+            await Task.Yield(); // Frame geçişi için bekle
+            levelManager.currentLevel = level;
+            levelManager.StartGame();
         }
     }
-
     private void SetupMainMenuUI()
     {
         Debug.Log("Setting up MainMenuUI");
@@ -317,21 +327,33 @@ public class UIManager : MonoBehaviour
     {
         Debug.Log("Setting up GameplayUI");
         
-        if (currentGameplayUI == null)
+        // Önce mevcut MainMenuUI'ı temizle
+        if (currentMainMenuUI != null)
         {
-            currentGameplayUI = Instantiate(gameplayUIPrefab);
-            Debug.Log("GameplayUI instantiated");
-            
-            // Parent'ını Canvas yapalım
-            Canvas mainCanvas = FindFirstObjectByType<Canvas>();
-            if (mainCanvas != null)
-            {
-                currentGameplayUI.transform.SetParent(mainCanvas.transform, false);
-            }
-            
-            // UI elementlerinin referanslarını al
-            SetupGameplayUIReferences();
+            Destroy(currentMainMenuUI);
+            currentMainMenuUI = null;
         }
+
+        // Mevcut GameplayUI varsa temizle
+        if (currentGameplayUI != null)
+        {
+            Destroy(currentGameplayUI);
+            currentGameplayUI = null;
+        }
+
+        // Yeni GameplayUI oluştur
+        currentGameplayUI = Instantiate(gameplayUIPrefab);
+        Debug.Log("GameplayUI instantiated");
+        
+        // Parent'ını Canvas yapalım
+        Canvas mainCanvas = FindFirstObjectByType<Canvas>();
+        if (mainCanvas != null)
+        {
+            currentGameplayUI.transform.SetParent(mainCanvas.transform, false);
+        }
+        
+        // UI elementlerinin referanslarını al
+        SetupGameplayUIReferences();
     }
     
     public void UpdateLevelDisplay()
@@ -413,7 +435,7 @@ public class UIManager : MonoBehaviour
         // Objectives bilgisini güncelle
         if (levelObjectivesText != null)
         {
-            string objectives = "Objectives:\n\n";
+            string objectives = "\n Objectives:\n\n";
             
             foreach (var stage in level.stages)
             {
@@ -423,7 +445,11 @@ public class UIManager : MonoBehaviour
                     switch (objective.type)
                     {
                         case ObjectiveType.CollectSpecificCards:
-                            objectives += $"• Collect {objective.targetAmount} of Card {objective.specificCardID}\n";
+                            CardData cardData = cardDataList.GetDataByID(objective.specificCardID);
+                            string cardName = cardData != null && !string.IsNullOrEmpty(cardData.cardName) 
+                                ? cardData.cardName 
+                                : $"Card {objective.specificCardID}";
+                            objectives += $"• Collect {objective.targetAmount} of {cardName}\n";
                             break;
                         case ObjectiveType.CollectCardAmount:
                             objectives += $"• Collect {objective.targetAmount} Cards\n";
@@ -476,16 +502,25 @@ public class UIManager : MonoBehaviour
                 switch (firstObjective.type)
                 {
                     case ObjectiveType.CollectSpecificCards:
-                        cardIDText.text = $"Hedef: Kart {firstObjective.specificCardID} Topla";
+                        CardData cardData = cardDataList.GetDataByID(firstObjective.specificCardID);
+                        if (cardData != null && !string.IsNullOrEmpty(cardData.cardName))
+                        {
+                            cardIDText.text = $"Target: Collect {cardData.cardName}";
+                        }
+                        else
+                        {
+                            Debug.LogWarning($"Card data not found for ID: {firstObjective.specificCardID}");
+                            cardIDText.text = $"Target: Collect Card {firstObjective.specificCardID}";
+                        }
                         break;
                     case ObjectiveType.CollectCardAmount:
-                        cardIDText.text = "Hedef: Kart Topla";
+                        cardIDText.text = "Target: Collect Cards";
                         break;
                     case ObjectiveType.MatchPairs:
-                        cardIDText.text = "Hedef: Eşleştirme Yap";
+                        cardIDText.text = "Target: Match Pairs";
                         break;
                     default:
-                        cardIDText.text = $"Hedef: {firstObjective.type}";
+                        cardIDText.text = $"Target: {firstObjective.type}";
                         break;
                 }
             }
@@ -501,10 +536,39 @@ public class UIManager : MonoBehaviour
             {
                 string progress = $"{objective.currentAmount}/{objective.targetAmount}";
                 string status = objective.isCompleted ? "✓" : "";
-                objectives += $"{objective.description} {progress} {status}\n";
+                
+                // Eğer belirli bir kart toplanacaksa
+                if (objective.type == ObjectiveType.CollectSpecificCards)
+                {
+                    // CardDataList'ten kart bilgisini al
+                    CardData cardData = cardDataList.GetDataByID(objective.specificCardID);
+                    
+                    if (cardData != null && !string.IsNullOrEmpty(cardData.cardName))
+                    {
+                        objectives += $"Collect {cardData.cardName} {progress} {status}\n";
+                    }
+                    else
+                    {
+                        Debug.LogWarning($"Card data not found for ID: {objective.specificCardID}");
+                        objectives += $"Collect Card {objective.specificCardID} {progress} {status}\n";
+                    }
+                }
+                else
+                {
+                    objectives += $"{objective.description} {progress} {status}\n";
+                }
             }
             objectivesText.text = objectives;
         }
+    }
+
+    private CardData FindCardDataByID(int cardID)
+    {
+        if (cardDataList != null)
+        {
+            return cardDataList.GetDataByID(cardID);
+        }
+        return null;
     }
 
     private void OnStageStart(StageDefinition stage)
@@ -594,15 +658,16 @@ public class UIManager : MonoBehaviour
 
     public async void OnPlayButtonClicked()
     {
-        Debug.Log("Play button clicked");
-        
+        // MainMenuUI'ı gizle ve temizle
         if (currentMainMenuUI != null)
         {
             currentMainMenuUI.SetActive(false);
+            Destroy(currentMainMenuUI);
+            currentMainMenuUI = null;
         }
 
+        // GameplayUI'ı hazırla
         SetupGameplayUI();
-        currentGameplayUI.SetActive(true);
 
         // Mevcut level'ı al
         int currentLevelIndex = PlayerPrefs.GetInt("CurrentLevel", 1);
@@ -650,6 +715,13 @@ public class UIManager : MonoBehaviour
         if (gameManager != null)
         {
             gameManager.ResetGame();
+        }
+
+        // Mevcut GameplayUI'ı temizle
+        if (currentGameplayUI != null)
+        {
+            Destroy(currentGameplayUI);
+            currentGameplayUI = null;
         }
         
         ShowMainMenu();

@@ -94,7 +94,7 @@ public class CardDealer : MonoBehaviour
 
         foreach (var objective in currentStage.objectives)
         {
-            if (objective.type == ObjectiveType.CollectSpecificCards && objective.specificCardID > 0)
+            if (objective.type == ObjectiveType.CollectSpecificCards && objective.specificCardID >= 0)
             {
                 int setsNeeded = Mathf.CeilToInt(objective.targetAmount / 3f);
                 int cardsNeeded = setsNeeded * 3;
@@ -185,7 +185,7 @@ public class CardDealer : MonoBehaviour
 
     private bool IsValidCardID(int cardID)
     {
-        return cardID > 0 && cardDataList.GetDataByID(cardID) != null;
+        return cardID >= 0 && cardDataList.GetDataByID(cardID) != null;
     }
 
     private int GetLeastUsedCard(List<int> availableCards)

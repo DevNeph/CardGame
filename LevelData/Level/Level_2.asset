@@ -18,17 +18,14 @@ MonoBehaviour:
   - stageName: Level2-1
     layoutData: {fileID: 11400000, guid: 31d940b8fd4a65c40a83f499b030681f, type: 2}
     allowedCardIDs: 00000000010000000d000000
-    totalCards: 18
-    cardsToCollect: 18
+    totalCardsInStage: 18
     isCompleted: 0
     timeLimit: 0
     moveLimit: 0
-    completionType: 0
-    collectionTargets: []
     objectives:
-    - type: 0
+    - type: 1
       description: 
-      targetAmount: 0
+      targetAmount: 18
       currentAmount: 0
       specificCardID: 0
       isCompleted: 0

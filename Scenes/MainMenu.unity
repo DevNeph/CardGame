@@ -148,7 +148,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 924b130b2624e44438c88b1e062cebb4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  levelDefinitions:
+  levels:
   - {fileID: 11400000, guid: f28d42076ae140643ae8bf2931909be0, type: 2}
   - {fileID: 11400000, guid: ad521a6a091a6ee4d849b0d0d6ad57b2, type: 2}
   - {fileID: 11400000, guid: b279f8c2dafa4a84caffbdf7c5824ade, type: 2}
@@ -369,6 +369,7 @@ MonoBehaviour:
   loadingScreenPrefab: {fileID: 5728995593787672339, guid: 8fbb242b5c2b7954794d8f2ee07a0193, type: 3}
   mainMenuUIPrefab: {fileID: 3159286883024134126, guid: f41a5c1decd25974f87809e15d6dfffe, type: 3}
   gameplayUIPrefab: {fileID: 4363439968538996541, guid: 334f75ce15f3196468b28255655e15b4, type: 3}
+  cardDataList: {fileID: 11400000, guid: 8b5dafbe23385944081e801a2cfb6c1e, type: 2}
 --- !u!4 &1938623653
 Transform:
   m_ObjectHideFlags: 0

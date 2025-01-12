@@ -18,36 +18,30 @@ MonoBehaviour:
   - stageName: Level4-1
     layoutData: {fileID: 11400000, guid: 5eef52eb484092d47804ac1e469e04b7, type: 2}
     allowedCardIDs: 0000000001000000020000000d0000000e000000
-    totalCards: 18
-    cardsToCollect: 18
-    isCompleted: 1
+    totalCardsInStage: 18
+    isCompleted: 0
     timeLimit: 0
     moveLimit: 0
-    completionType: 0
-    collectionTargets: []
     objectives:
     - type: 1
       description: 
       targetAmount: 18
-      currentAmount: 18
+      currentAmount: 0
       specificCardID: 0
-      isCompleted: 1
+      isCompleted: 0
   - stageName: Level4-2
     layoutData: {fileID: 11400000, guid: 5eef52eb484092d47804ac1e469e04b7, type: 2}
     allowedCardIDs: 0000000001000000020000000d0000000e000000
-    totalCards: 18
-    cardsToCollect: 18
-    isCompleted: 1
+    totalCardsInStage: 18
+    isCompleted: 0
     timeLimit: 0
     moveLimit: 0
-    completionType: 1
-    collectionTargets: []
     objectives:
     - type: 0
       description: 
       targetAmount: 6
-      currentAmount: 6
+      currentAmount: 0
       specificCardID: 13
-      isCompleted: 1
+      isCompleted: 0
   levelThumbnail: {fileID: 0}
   starsRequired: 0

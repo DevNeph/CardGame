@@ -19,5 +19,4 @@ public class CardData
     public int cardID;            // Örneğin 0..27 As kartlar, 28 = wild vb.
     public Sprite cardSprite;     // Kartın görseli
     public string cardName;       // İsteğe bağlı (örneğin "AS-0", "Wild", vb.)
-    // Buraya ek özellikler de ekleyebilirsin (hasar, puan, vb.)
 }

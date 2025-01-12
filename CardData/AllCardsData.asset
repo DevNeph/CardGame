@@ -18,25 +18,25 @@ MonoBehaviour:
     cardName: Empty
   - cardID: 1
     cardSprite: {fileID: 1341821337776111572, guid: 5a7531bdc7a4c8a48bfe3079d8266352, type: 3}
-    cardName: Black_1
+    cardName: Black 1
   - cardID: 2
     cardSprite: {fileID: 8048825957149488988, guid: 3013a21694985a34f82533d6ef210af2, type: 3}
-    cardName: Black_2
+    cardName: Black 2
   - cardID: 3
     cardSprite: {fileID: -4321070653507889690, guid: 8252465511607184db631440fdd2e898, type: 3}
-    cardName: Black_3
+    cardName: Black 3
   - cardID: 4
     cardSprite: {fileID: -3272885264170676013, guid: eb308db1616ed2e48a69a62d53ff1185, type: 3}
-    cardName: Black_4
+    cardName: Black 4
   - cardID: 5
     cardSprite: {fileID: -4673441263369120223, guid: 4c41c605ead68b44aaee5511c5245d9d, type: 3}
-    cardName: Black_5
+    cardName: Black 5
   - cardID: 6
     cardSprite: {fileID: 2357444336428116547, guid: 46014c52658c4514c81ce5ccec400f91, type: 3}
-    cardName: Black_6
+    cardName: Black 6
   - cardID: 7
     cardSprite: {fileID: 7442266108308328874, guid: 630b0347f6d6074448a95befe951ad0f, type: 3}
-    cardName: Black_7
+    cardName: Black 7
   - cardID: 8
     cardSprite: {fileID: -2131604300143894922, guid: f4427deddb332ef4794c2c327493a6eb, type: 3}
     cardName: Black_3
@@ -51,10 +51,10 @@ MonoBehaviour:
     cardName: Black_J
   - cardID: 12
     cardSprite: {fileID: 1419757813147317594, guid: 546ffb43d2d0c0643bd3bdc37d33aae2, type: 3}
-    cardName: Black_K
+    cardName: Black K
   - cardID: 13
     cardSprite: {fileID: -824978273291345520, guid: 196744a2863a39e45b223a36cacf4e7d, type: 3}
-    cardName: Black_Q
+    cardName: Black Q
   - cardID: 14
     cardSprite: {fileID: 311926737706019549, guid: 6c2c7fadeb20d6b4a96fe12d7d5b327c, type: 3}
     cardName: Red_1
