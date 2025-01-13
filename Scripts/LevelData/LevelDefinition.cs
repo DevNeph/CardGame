@@ -1,5 +1,7 @@
-using UnityEngine;
 using System.Collections.Generic;
+using UnityEngine;
+
+#region LevelDefinition and Related Classes
 
 [CreateAssetMenu(menuName = "MyGame/Level Definition", fileName = "NewLevelDefinition")]
 public class LevelDefinition : ScriptableObject
@@ -43,6 +45,7 @@ public class StageDefinition
     [Tooltip("Stage'in tamamlanması için gerekli hedefler")]
     public List<StageObjective> objectives = new List<StageObjective>();
 
+    #region StageDefinition Methods
     public void InitializeObjectives()
     {
         if (objectives == null)
@@ -59,14 +62,12 @@ public class StageDefinition
     // Toplam kart sayısının geçerli olup olmadığını kontrol et
     public bool ValidateTotalCards()
     {
-        // Minimum 9 kart olmalı
+        // Minimum 9 kart olmalı ve 3'ün katı olmalı
         if (totalCardsInStage < 9)
         {
             Debug.LogError($"Stage {stageName}: Total cards must be at least 9!");
             return false;
         }
-
-        // 3'ün katı olmalı
         if (totalCardsInStage % 3 != 0)
         {
             Debug.LogError($"Stage {stageName}: Total cards must be divisible by 3!");
@@ -104,6 +105,7 @@ public class StageDefinition
         }
         return Mathf.Max(9, minCards);
     }
+    #endregion
 }
 
 public enum ObjectiveType
@@ -142,6 +144,7 @@ public class StageObjective
     [Tooltip("Hedef tamamlandı mı?")]
     public bool isCompleted;
 
+    #region StageObjective Methods
     public void Reset()
     {
         currentAmount = 0;
@@ -158,4 +161,7 @@ public class StageObjective
         isCompleted = currentAmount >= targetAmount;
         return isCompleted;
     }
+    #endregion
 }
+
+#endregion

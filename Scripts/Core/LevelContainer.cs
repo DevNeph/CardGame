@@ -1,12 +1,17 @@
 using UnityEngine;
-using System.Collections.Generic; // List için gerekli
+using System.Collections.Generic;
 
 public class LevelContainer : MonoBehaviour
 {
+    #region Singleton
     public static LevelContainer Instance { get; private set; }
-    
-    [SerializeField] private List<LevelDefinition> levels;
+    #endregion
 
+    #region Inspector Fields
+    [SerializeField] private List<LevelDefinition> levels;
+    #endregion
+
+    #region Unity Lifecycle
     private void Awake()
     {
         if (Instance == null)
@@ -19,7 +24,9 @@ public class LevelContainer : MonoBehaviour
             Destroy(gameObject);
         }
     }
+    #endregion
 
+    #region Level Access Methods
     public LevelDefinition GetLevel(int levelIndex)
     {
         if (levels == null || levels.Count == 0)
@@ -44,7 +51,9 @@ public class LevelContainer : MonoBehaviour
     {
         return levels?.Count ?? 0;
     }
+    #endregion
 
+    #region Editor Utility Methods
     // Editor'da level eklemeyi kolaylaştırmak için
     public void AddLevel(LevelDefinition level)
     {
@@ -69,4 +78,5 @@ public class LevelContainer : MonoBehaviour
             Debug.Log($"Removed level: {level.levelName}");
         }
     }
+    #endregion
 }

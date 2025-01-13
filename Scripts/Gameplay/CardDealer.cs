@@ -133,8 +133,6 @@ public class CardDealer : MonoBehaviour
     private int CalculateTotalRequiredCards()
     {
         if (currentStage == null) return 9;
-
-        // Stage'de belirtilen toplam kart sayısını kullan
         return currentStage.totalCardsInStage;
     }
 
@@ -156,7 +154,6 @@ public class CardDealer : MonoBehaviour
         int baseGroupsPerType = totalGroups / availableCards.Count;
         int extraGroups = totalGroups % availableCards.Count;
 
-        // Kartları tek seferde dağıt
         foreach (int cardID in availableCards)
         {
             int groupsForThisCard = baseGroupsPerType + (extraGroups > 0 ? 1 : 0);
@@ -177,20 +174,9 @@ public class CardDealer : MonoBehaviour
     #endregion
 
     #region Card Management Methods
-    private int CalculateMaxCardsPerType(int remainingCards, int availableCardCount)
-    {
-        int maxCards = Mathf.CeilToInt(remainingCards / (float)availableCardCount);
-        return Mathf.CeilToInt(maxCards / 3f) * 3;
-    }
-
     private bool IsValidCardID(int cardID)
     {
         return cardID >= 0 && cardDataList.GetDataByID(cardID) != null;
-    }
-
-    private int GetLeastUsedCard(List<int> availableCards)
-    {
-        return availableCards.OrderBy(id => GetCardCount(id)).First();
     }
 
     private void AddCardsOfType(int cardID, int count)
@@ -234,11 +220,9 @@ public class CardDealer : MonoBehaviour
         List<(Vector3 position, bool isHidden, int layerIndex)> allPositions = GetAllPositions();
         int totalPositions = allPositions.Count;
 
-        // Önce spesifik hedef kartları yerleştir
         List<int> remainingCards = new List<int>(workingDeck);
         List<int> targetCards = GetTargetCards();
         
-        // Hedef kartları yerleştir
         foreach (var cardId in targetCards)
         {
             if (remainingCards.Contains(cardId))
@@ -247,7 +231,6 @@ public class CardDealer : MonoBehaviour
             }
         }
 
-        // Kalan pozisyonları random kartlarla doldur
         int remainingPositions = totalPositions - targetCards.Count;
         if (remainingPositions > 0 && remainingCards.Count > 0)
         {
@@ -265,22 +248,16 @@ public class CardDealer : MonoBehaviour
     {
         List<(Vector3 position, bool isHidden, int layerIndex)> allPositions = new List<(Vector3, bool, int)>();
 
-        // Layer'ları tersten dönüyoruz ki en üstteki layer en küçük z değerini alsın
         for (int i = currentLayout.layers.Count - 1; i >= 0; i--)
         {
             var layer = currentLayout.layers[i];
             foreach (var pos in layer.positions)
             {
-                // Z değerini layer indexine göre ayarlıyoruz
-                // En üstteki layer (en son layer) z=0'da olacak
-                // Alttaki layer'lar negatif z değerlerine sahip olacak
                 float zPos = (currentLayout.layers.Count - 1 - i) * -0.1f;
                 Vector3 worldPos = new Vector3(pos.x, pos.y, zPos);
                 allPositions.Add((worldPos, pos.isHidden, i));
             }
         }
-
-        // OrderBy kullanmaya gerek yok çünkü zaten doğru sırada oluşturuyoruz
         return allPositions;
     }
 
@@ -294,7 +271,6 @@ public class CardDealer : MonoBehaviour
             {
                 if (objective.type == ObjectiveType.CollectSpecificCards && objective.specificCardID >= 0)
                 {
-                    // Hedef kartları ekle
                     int requiredCount = objective.targetAmount;
                     for (int i = 0; i < requiredCount; i++)
                     {
@@ -311,7 +287,6 @@ public class CardDealer : MonoBehaviour
     {
         if (availableCards.Count == 0) return;
 
-        // Kalan kartları karıştır
         List<int> shuffledCards = new List<int>(availableCards);
         for (int i = shuffledCards.Count - 1; i > 0; i--)
         {
@@ -319,7 +294,6 @@ public class CardDealer : MonoBehaviour
             (shuffledCards[i], shuffledCards[randIndex]) = (shuffledCards[randIndex], shuffledCards[i]);
         }
 
-        // Her pozisyona random kart yerleştir
         int cardIndex = 0;
         for (int i = 0; i < positionCount && i < positions.Count; i++)
         {
@@ -327,7 +301,7 @@ public class CardDealer : MonoBehaviour
             
             if (cardIndex >= shuffledCards.Count)
             {
-                cardIndex = 0; // Kartlar bittiyse baştan başla
+                cardIndex = 0;
             }
 
             SpawnCard(shuffledCards[cardIndex], position, isHidden, layerIndex);
@@ -344,8 +318,6 @@ public class CardDealer : MonoBehaviour
         }
 
         int totalPositions = currentLayout.layers.Sum(layer => layer.positions.Count);
-        
-        // Minimum pozisyon kontrolünü kaldır, artık 3'ün katı olma zorunluluğu yok
         if (totalPositions == 0)
         {
             Debug.LogError("No positions defined in layout!");
@@ -367,12 +339,9 @@ public class CardDealer : MonoBehaviour
         {
             card.SetupCard(cardID, cardData.cardSprite, isHidden);
             card.SetLayerIndex(layerIndex);
-            
-            // Kartın görünümünü hemen güncelle
             card.UpdateCardAppearance();
         }
     }
-
     #endregion
 
     #region Public Methods
@@ -388,7 +357,7 @@ public class CardDealer : MonoBehaviour
 
     public void ClearCurrentCards()
     {
-        var existingCards = FindObjectsByType<Card>(FindObjectsSortMode.None);
+        var existingCards = Object.FindObjectsByType<Card>(FindObjectsSortMode.None);
         foreach (var card in existingCards)
         {
             Destroy(card.gameObject);

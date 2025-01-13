@@ -3,6 +3,7 @@ using UnityEngine;
 
 public class Card : MonoBehaviour
 {
+    #region Fields
     public int cardID;
     private bool isHidden;
     private SpriteRenderer spriteRenderer;
@@ -17,7 +18,9 @@ public class Card : MonoBehaviour
 
     // Tüm kart örneklerini tutmak için statik liste
     private static List<Card> allCards = new List<Card>();
+    #endregion
 
+    #region Unity Lifecycle Methods
     private void Awake()
     {
         spriteRenderer = GetComponent<SpriteRenderer>();
@@ -42,7 +45,9 @@ public class Card : MonoBehaviour
         if(allCards.Contains(this))
             allCards.Remove(this);
     }
+    #endregion
 
+    #region Setup and Configuration Methods
     public void SetLayerIndex(int index)
     {
         layerIndex = index;
@@ -101,7 +106,9 @@ public class Card : MonoBehaviour
             card.UpdateCardAppearance();
         }
     }
+    #endregion
 
+    #region Appearance and Logic Methods
     private void SetAsBehind()
     {
         if (spriteRenderer != null)
@@ -112,23 +119,6 @@ public class Card : MonoBehaviour
     {
         if (spriteRenderer != null)
             spriteRenderer.color = Color.white;
-    }
-
-    private void OnMouseDown()
-    {
-        if (isInSlot || GameManager.IsPopupActive)
-        {
-            Debug.Log("Kart slot'ta veya popup aktif.");
-            return;
-        }
-
-        if (!CanBeRevealed())
-        {
-            Debug.Log("Bu karta tıklanamaz çünkü üst layer'da kart var.");
-            return;
-        }
-
-        gm?.OnCardClicked(this);
     }
 
     public bool IsCardBehind()
@@ -248,4 +238,24 @@ public class Card : MonoBehaviour
         }
         return nextLayer;
     }
+    #endregion
+
+    #region Input Handling
+    private void OnMouseDown()
+    {
+        if (isInSlot || GameManager.IsPopupActive)
+        {
+            Debug.Log("Kart slot'ta veya popup aktif.");
+            return;
+        }
+
+        if (!CanBeRevealed())
+        {
+            Debug.Log("Bu karta tıklanamaz çünkü üst layer'da kart var.");
+            return;
+        }
+
+        gm?.OnCardClicked(this);
+    }
+    #endregion
 }

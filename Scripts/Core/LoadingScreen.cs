@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 
 public class LoadingScreen : MonoBehaviour
 {
+    #region Singleton & Fields
     public static LoadingScreen Instance { get; private set; }
 
     [Header("UI Elements")]
@@ -13,11 +14,12 @@ public class LoadingScreen : MonoBehaviour
     [SerializeField] private TMP_Text loadingText;
     [SerializeField] private TMP_Text progressText;
 
-    // Yükleme durumunu takip etmek için
     private float currentProgress = 0f;
-    public bool IsLoading => isLoading;
     private bool isLoading = false;
+    public bool IsLoading => isLoading;
+    #endregion
 
+    #region Unity Lifecycle
     private void Awake()
     {
         if (Instance == null)
@@ -30,36 +32,35 @@ public class LoadingScreen : MonoBehaviour
             Destroy(gameObject);
         }
     }
+    #endregion
 
+    #region Public Methods
     public async Task LoadGameContent()
     {
         isLoading = true;
         loadingPanel.SetActive(true);
 
-        // UI Elementlerini Yükle
         UpdateProgress(0.1f, "UI elementleri yükleniyor...");
         await LoadUIElements();
 
-        // Kartları Yükle
         UpdateProgress(0.3f, "Kartlar yükleniyor...");
         await LoadCards();
 
-        // Ses Efektlerini Yükle
         UpdateProgress(0.5f, "Ses efektleri yükleniyor...");
         await LoadAudioAssets();
 
-        // Diğer Game Assets'leri Yükle
         UpdateProgress(0.7f, "Oyun içeriği yükleniyor...");
         await LoadGameAssets();
 
-        // Yükleme Tamamlandı
         UpdateProgress(1f, "Yükleme tamamlandı!");
         await Task.Delay(500); // Kısa bir gösterme süresi
 
         isLoading = false;
         loadingPanel.SetActive(false);
     }
+    #endregion
 
+    #region Private Methods
     private void UpdateProgress(float progress, string status)
     {
         currentProgress = progress;
@@ -70,7 +71,6 @@ public class LoadingScreen : MonoBehaviour
 
     private async Task LoadUIElements()
     {
-        // UI Prefabları yükle
         var operation = Resources.LoadAsync("Prefabs/UI");
         while (!operation.isDone)
         {
@@ -80,7 +80,6 @@ public class LoadingScreen : MonoBehaviour
 
     private async Task LoadCards()
     {
-        // Kart prefabları ve sprite'ları yükle
         var operation = Resources.LoadAsync("Prefabs/Cards");
         while (!operation.isDone)
         {
@@ -90,7 +89,6 @@ public class LoadingScreen : MonoBehaviour
 
     private async Task LoadAudioAssets()
     {
-        // Ses dosyalarını yükle
         var operation = Resources.LoadAsync("Audio");
         while (!operation.isDone)
         {
@@ -100,11 +98,11 @@ public class LoadingScreen : MonoBehaviour
 
     private async Task LoadGameAssets()
     {
-        // Diğer oyun içeriklerini yükle
         var operation = Resources.LoadAsync("GameAssets");
         while (!operation.isDone)
         {
             await Task.Yield();
         }
     }
+    #endregion
 }

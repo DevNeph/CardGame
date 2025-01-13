@@ -3,9 +3,9 @@ using UnityEngine.UI;
 using TMPro;
 using System.Threading.Tasks;
 
-
 public class UIManager : MonoBehaviour
 {
+    #region Singleton & Serialized Fields
     public static UIManager Instance { get; private set; }
     
     [Header("References")]
@@ -13,23 +13,19 @@ public class UIManager : MonoBehaviour
     [SerializeField] private GameObject mainMenuUIPrefab;  
     [SerializeField] private GameObject gameplayUIPrefab;
     [SerializeField] private CardDataList cardDataList;
+    #endregion
 
+    #region Private Fields
+    private Canvas mainCanvas;
     private GameObject currentMainMenuUI;
     private GameObject currentGameplayUI;
 
     // UI References - MainMenu
     private TMP_Text[] levelTexts;
-    private TMP_Text levelTitleText;    // Level 1, Level 2 vs.
-    private TMP_Text stageCountText;    // Stage: 1/3 gibi
-    private TMP_Text levelObjectivesText; // Sadece objectives bilgisi
+    private TMP_Text levelTitleText;
+    private TMP_Text stageCountText;
+    private TMP_Text levelObjectivesText;
     private Button playButton;
-
-    // Level textleri için property'ler
-    private TMP_Text PreviousLevel2Text => levelTexts[0];
-    private TMP_Text PreviousLevel1Text => levelTexts[1];
-    private TMP_Text CurrentLevelText => levelTexts[2];
-    private TMP_Text NextLevel1Text => levelTexts[3];
-    private TMP_Text NextLevel2Text => levelTexts[4];
 
     // UI References - Gameplay
     private TMP_Text removedCardsText;
@@ -44,39 +40,18 @@ public class UIManager : MonoBehaviour
 
     private LevelManager levelManager;
     private GameManager gameManager;
-    private int currentLevelIndex = 0;
+    #endregion
 
-    private async void Start()
-    {
-        Debug.Log("UIManager Start called");
-        
-        // Önce referansları al
-        levelManager = FindFirstObjectByType<LevelManager>();
-        gameManager = FindFirstObjectByType<GameManager>();
-        
-        // LevelManager'ı initialize et ama level yükleme
-        if (levelManager != null)
-        {
-            levelManager.Initialize();
-        }
-        
-        await InitializeUI();
-    }
-
-
+    #region Unity Lifecycle Methods
     private void Awake()
     {
         if (Instance == null)
         {
             Instance = this;
             DontDestroyOnLoad(gameObject);
-            
-            // Referansları al
-            gameManager = FindFirstObjectByType<GameManager>();
-            levelManager = FindFirstObjectByType<LevelManager>();
 
-            // Ana Canvas'ı bul veya oluştur
-            Canvas mainCanvas = FindFirstObjectByType<Canvas>();
+            // Cache primary references
+            mainCanvas = Object.FindFirstObjectByType<Canvas>();
             if (mainCanvas == null)
             {
                 GameObject canvasObj = new GameObject("MainCanvas");
@@ -86,6 +61,9 @@ public class UIManager : MonoBehaviour
                 canvasObj.AddComponent<GraphicRaycaster>();
                 DontDestroyOnLoad(canvasObj);
             }
+
+            gameManager = Object.FindFirstObjectByType<GameManager>();
+            levelManager = Object.FindFirstObjectByType<LevelManager>();
         }
         else
         {
@@ -93,32 +71,54 @@ public class UIManager : MonoBehaviour
         }
     }
 
+    private async void Start()
+    {
+        Debug.Log("UIManager Start called");
+        
+        levelManager = levelManager ?? Object.FindFirstObjectByType<LevelManager>();
+        gameManager = gameManager ?? Object.FindFirstObjectByType<GameManager>();
+        
+        levelManager?.Initialize();
+        await InitializeUI();
+    }
+
+    private void Update()
+    {
+        if(Input.GetKeyDown(KeyCode.R))
+        {
+            ResetPlayerData();
+        }
+    }
+
+    private void OnDestroy()
+    {
+        if (levelManager != null)
+        {
+            levelManager.onStageStart.RemoveListener(OnStageStart);
+            levelManager.onStageComplete.RemoveListener(OnStageComplete);
+            levelManager.onLevelComplete.RemoveListener(OnLevelComplete);
+            levelManager.onObjectiveProgress.RemoveListener(OnObjectiveProgress);
+        }
+    }
+    #endregion
+
+    #region Initialization Methods
     private async Task InitializeUI()
     {
         Debug.Log("Initializing UI...");
         
-        // Loading Screen'i oluştur
-        if (loadingScreen == null)
+        if (loadingScreen == null && loadingScreenPrefab != null)
         {
             GameObject loadingScreenObj = Instantiate(loadingScreenPrefab);
             loadingScreen = loadingScreenObj.GetComponent<LoadingScreen>();
-            
-            Canvas mainCanvas = FindFirstObjectByType<Canvas>();
-            if (mainCanvas != null)
-            {
-                loadingScreenObj.transform.SetParent(mainCanvas.transform, false);
-            }
+            if (mainCanvas != null) loadingScreenObj.transform.SetParent(mainCanvas.transform, false);
         }
 
         try
         {
-            // İlk yüklemeyi başlat
             if (loadingScreen != null)
-            {
                 await loadingScreen.LoadGameContent();
-            }
 
-            // Gameplay UI'ı gizli olarak oluştur
             if (currentGameplayUI != null)
             {
                 Destroy(currentGameplayUI);
@@ -126,7 +126,6 @@ public class UIManager : MonoBehaviour
             currentGameplayUI = Instantiate(gameplayUIPrefab);
             currentGameplayUI.SetActive(false);
 
-            // Ana menüyü göster
             ShowMainMenu();
         }
         catch (System.Exception e)
@@ -134,74 +133,31 @@ public class UIManager : MonoBehaviour
             Debug.LogError($"Error during UI initialization: {e.Message}");
         }
     }
+    #endregion
 
+    #region UI Setup Methods
     public void ShowMainMenu()
     {
-        // Önce GameplayUI'ı temizle
         if (currentGameplayUI != null)
         {
             Destroy(currentGameplayUI);
             currentGameplayUI = null;
         }
-
-        // Sonra MainMenuUI'ı kur
         SetupMainMenuUI();
     }
 
-    public async Task StartGame(LevelDefinition level)
-    {
-        if (level == null)
-        {
-            Debug.LogError("Cannot start game: Level is null!");
-            return;
-        }
-
-        // GameManager referanslarını kullan
-        GameManager.IsPopupActive = false;
-
-        // Mevcut UI'ları temizle
-        if (currentMainMenuUI != null)
-        {
-            currentMainMenuUI.SetActive(false);
-            Destroy(currentMainMenuUI);
-            currentMainMenuUI = null;
-        }
-
-        // Yeni GameplayUI'ı hazırla
-        SetupGameplayUI();
-
-        // Level'ı yükle
-        if (levelManager != null)
-        {
-            await Task.Yield(); // Frame geçişi için bekle
-            levelManager.currentLevel = level;
-            levelManager.StartGame();
-        }
-    }
     private void SetupMainMenuUI()
     {
         Debug.Log("Setting up MainMenuUI");
-        
         try
         {
             if (currentMainMenuUI == null && mainMenuUIPrefab != null)
             {
                 currentMainMenuUI = Instantiate(mainMenuUIPrefab);
-                
-                Canvas mainCanvas = FindFirstObjectByType<Canvas>();
-                if (mainCanvas != null)
-                {
-                    currentMainMenuUI.transform.SetParent(mainCanvas.transform, false);
-                }
-                
-                // UI elementlerinin referanslarını al
+                if (mainCanvas != null) currentMainMenuUI.transform.SetParent(mainCanvas.transform, false);
                 SetupMainMenuReferences();
             }
-            
-            if (currentMainMenuUI != null)
-            {
-                currentMainMenuUI.SetActive(true);
-            }
+            currentMainMenuUI?.SetActive(true);
         }
         catch (System.Exception e)
         {
@@ -215,19 +171,17 @@ public class UIManager : MonoBehaviour
 
         try
         {
-            // Önce LevelSelectionPanel'i bul
             Transform levelSelectionPanel = currentMainMenuUI.transform.Find("LevelSelectionPanel");
             if (levelSelectionPanel == null)
             {
-                Debug.LogError("LevelSelectionPanel not found. Please check MainMenuUI prefab structure.");
+                Debug.LogError("LevelSelectionPanel not found.");
                 return;
             }
 
-            // Sonra LevelDisplay'i LevelSelectionPanel altında ara
             Transform levelDisplay = levelSelectionPanel.Find("LevelDisplay");
             if (levelDisplay == null)
             {
-                Debug.LogError("LevelDisplay not found under LevelSelectionPanel.");
+                Debug.LogError("LevelDisplay not found.");
                 return;
             }
 
@@ -238,15 +192,13 @@ public class UIManager : MonoBehaviour
             levelTexts[3] = levelDisplay.Find("Level+1Text")?.GetComponent<TMP_Text>();
             levelTexts[4] = levelDisplay.Find("Level+2Text")?.GetComponent<TMP_Text>();
 
-            // Level info panel referanslarını al
             Transform levelInfoPanel = levelSelectionPanel.Find("LevelInfoPanel");
             if (levelInfoPanel == null)
             {
-                Debug.LogError("LevelInfoPanel not found under LevelSelectionPanel.");
+                Debug.LogError("LevelInfoPanel not found.");
                 return;
             }
 
-            // Yeni eklenen referanslar
             levelTitleText = levelInfoPanel.Find("LevelTitleText")?.GetComponent<TMP_Text>();
             stageCountText = levelInfoPanel.Find("StageCountText")?.GetComponent<TMP_Text>();
             levelObjectivesText = levelInfoPanel.Find("LevelObjectivesText")?.GetComponent<TMP_Text>();
@@ -258,13 +210,9 @@ public class UIManager : MonoBehaviour
                 playButton.onClick.AddListener(() => OnPlayButtonClicked());
             }
 
-            // Level display'i güvenli bir şekilde güncelle
             if (levelTexts[2] != null)
-            {
                 UpdateLevelDisplay();
-            }
 
-            // Level bilgilerini güncelle
             UpdateLevelInfo();
         }
         catch (System.Exception e)
@@ -276,9 +224,8 @@ public class UIManager : MonoBehaviour
     private void SetupGameplayUIReferences()
     {
         Debug.Log("Setting up GameplayUI references");
-        
-        // Top panel referanslarını al
-        var topPanel = currentGameplayUI.transform.Find("TopPanel");
+
+        Transform topPanel = currentGameplayUI.transform.Find("TopPanel");
         if (topPanel != null)
         {
             removedCardsText = topPanel.Find("RemovedCardsText")?.GetComponent<TMP_Text>();
@@ -290,8 +237,7 @@ public class UIManager : MonoBehaviour
             Debug.LogError("TopPanel not found in GameplayUI");
         }
 
-        // Objectives panel referansını al
-        var objectivesPanel = currentGameplayUI.transform.Find("ObjectivesPanel");
+        Transform objectivesPanel = currentGameplayUI.transform.Find("ObjectivesPanel");
         if (objectivesPanel != null)
         {
             objectivesText = objectivesPanel.Find("ObjectivesText")?.GetComponent<TMP_Text>();
@@ -301,14 +247,12 @@ public class UIManager : MonoBehaviour
             Debug.LogError("ObjectivesPanel not found in GameplayUI");
         }
 
-        // Panel referanslarını al
         stageTransitionPanel = currentGameplayUI.transform.Find("StageTransitionPanel")?.gameObject;
         levelCompletePanel = currentGameplayUI.transform.Find("LevelCompletePanel")?.gameObject;
         levelFailedPanel = currentGameplayUI.transform.Find("LevelFailedPanel")?.gameObject;
 
-        // Game Manager ve Level Manager referanslarını al
-        levelManager = FindFirstObjectByType<LevelManager>();
-        gameManager = FindFirstObjectByType<GameManager>();
+        levelManager = levelManager ?? Object.FindFirstObjectByType<LevelManager>();
+        gameManager = gameManager ?? Object.FindFirstObjectByType<GameManager>();
 
         if (levelManager != null)
         {
@@ -327,116 +271,99 @@ public class UIManager : MonoBehaviour
     {
         Debug.Log("Setting up GameplayUI");
         
-        // Önce mevcut MainMenuUI'ı temizle
         if (currentMainMenuUI != null)
         {
             Destroy(currentMainMenuUI);
             currentMainMenuUI = null;
         }
 
-        // Mevcut GameplayUI varsa temizle
         if (currentGameplayUI != null)
         {
             Destroy(currentGameplayUI);
             currentGameplayUI = null;
         }
 
-        // Yeni GameplayUI oluştur
         currentGameplayUI = Instantiate(gameplayUIPrefab);
         Debug.Log("GameplayUI instantiated");
         
-        // Parent'ını Canvas yapalım
-        Canvas mainCanvas = FindFirstObjectByType<Canvas>();
-        if (mainCanvas != null)
-        {
-            currentGameplayUI.transform.SetParent(mainCanvas.transform, false);
-        }
+        if (mainCanvas != null) currentGameplayUI.transform.SetParent(mainCanvas.transform, false);
         
-        // UI elementlerinin referanslarını al
         SetupGameplayUIReferences();
     }
-    
+    #endregion
+
+    #region Level & Objective Update Methods
     public void UpdateLevelDisplay()
     {
         int currentLevel = PlayerPrefs.GetInt("CurrentLevel", 1);
         int totalLevels = LevelContainer.Instance.GetTotalLevelCount();
-        
-        // Level -2
-        if (currentLevel >= 3)
-        {
-            PreviousLevel2Text.text = (currentLevel - 2).ToString();
-            PreviousLevel2Text.gameObject.SetActive(true);
-        }
-        else
-        {
-            PreviousLevel2Text.gameObject.SetActive(false);
-        }
 
-        // Level -1
-        if (currentLevel >= 2)
-        {
-            PreviousLevel1Text.text = (currentLevel - 1).ToString();
-            PreviousLevel1Text.gameObject.SetActive(true);
-        }
-        else
-        {
-            PreviousLevel1Text.gameObject.SetActive(false);
-        }
+        if (levelTexts == null || levelTexts.Length < 5) return;
 
-        // Mevcut Level
-        CurrentLevelText.text = currentLevel.ToString();
-        CurrentLevelText.gameObject.SetActive(true);
+        PreviousLevel2Text(levelTexts, currentLevel);
+        PreviousLevel1Text(levelTexts, currentLevel);
+        SetCurrentLevelText(levelTexts[2], currentLevel);
+        NextLevel1Text(levelTexts, currentLevel, totalLevels);
+        NextLevel2Text(levelTexts, currentLevel, totalLevels);
 
-        // Level +1
-        if (currentLevel < totalLevels)
-        {
-            NextLevel1Text.text = (currentLevel + 1).ToString();
-            NextLevel1Text.gameObject.SetActive(true);
-        }
-        else
-        {
-            NextLevel1Text.gameObject.SetActive(false);
-        }
-
-        // Level +2
-        if (currentLevel < totalLevels - 1)
-        {
-            NextLevel2Text.text = (currentLevel + 2).ToString();
-            NextLevel2Text.gameObject.SetActive(true);
-        }
-        else
-        {
-            NextLevel2Text.gameObject.SetActive(false);
-        }
-
-        // Level bilgilerini güncelle
         UpdateLevelInfo();
+    }
+
+    private void PreviousLevel2Text(TMP_Text[] texts, int currentLevel) {
+        if (currentLevel >= 3) {
+            texts[0].text = (currentLevel - 2).ToString();
+            texts[0].gameObject.SetActive(true);
+        } else {
+            texts[0].gameObject.SetActive(false);
+        }
+    }
+
+    private void PreviousLevel1Text(TMP_Text[] texts, int currentLevel) {
+        if (currentLevel >= 2) {
+            texts[1].text = (currentLevel - 1).ToString();
+            texts[1].gameObject.SetActive(true);
+        } else {
+            texts[1].gameObject.SetActive(false);
+        }
+    }
+
+    private void SetCurrentLevelText(TMP_Text currentText, int currentLevel) {
+        currentText.text = currentLevel.ToString();
+        currentText.gameObject.SetActive(true);
+    }
+
+    private void NextLevel1Text(TMP_Text[] texts, int currentLevel, int totalLevels) {
+        if (currentLevel < totalLevels) {
+            texts[3].text = (currentLevel + 1).ToString();
+            texts[3].gameObject.SetActive(true);
+        } else {
+            texts[3].gameObject.SetActive(false);
+        }
+    }
+
+    private void NextLevel2Text(TMP_Text[] texts, int currentLevel, int totalLevels) {
+        if (currentLevel < totalLevels - 1) {
+            texts[4].text = (currentLevel + 2).ToString();
+            texts[4].gameObject.SetActive(true);
+        } else {
+            texts[4].gameObject.SetActive(false);
+        }
     }
 
     private void UpdateLevelInfo()
     {
         int currentLevelIndex = PlayerPrefs.GetInt("CurrentLevel", 1);
         LevelDefinition level = LevelContainer.Instance.GetLevel(currentLevelIndex);
-        
         if (level == null) return;
 
-        // Level başlığını güncelle
         if (levelTitleText != null)
-        {
             levelTitleText.text = $"Level {level.levelNumber}";
-        }
-
-        // Stage sayısını güncelle
         if (stageCountText != null)
-        {
             stageCountText.text = $"Stages: {level.stages.Count}";
-        }
 
-        // Objectives bilgisini güncelle
         if (levelObjectivesText != null)
         {
             string objectives = "\n Objectives:\n\n";
-            
             foreach (var stage in level.stages)
             {
                 objectives += $"Stage {level.stages.IndexOf(stage) + 1}:\n";
@@ -461,7 +388,6 @@ public class UIManager : MonoBehaviour
                 }
                 objectives += "\n";
             }
-            
             levelObjectivesText.text = objectives;
         }
     }
@@ -469,21 +395,16 @@ public class UIManager : MonoBehaviour
     public void UpdateObjectiveProgress(StageObjective objective)
     {
         if (targetCardsText != null)
-        {
             targetCardsText.text = $"{objective.currentAmount}/{objective.targetAmount}";
-        }
+
         if (levelManager != null && levelManager.currentLevel != null)
-        {
             UpdateObjectivesText(levelManager.currentLevel.stages[levelManager.currentStageIndex]);
-        }
     }
 
     public void UpdateRemovedCardText(int count)
     {
         if (removedCardsText != null)
-        {
             removedCardsText.text = $"Toplam: {count}";
-        }
     }
 
     public void UpdateObjectiveUI(StageDefinition stage)
@@ -491,11 +412,8 @@ public class UIManager : MonoBehaviour
         if (stage.objectives != null && stage.objectives.Count > 0)
         {
             var firstObjective = stage.objectives[0];
-            
             if (targetCardsText != null)
-            {
                 targetCardsText.text = $"0/{firstObjective.targetAmount}";
-            }
 
             if (cardIDText != null)
             {
@@ -503,15 +421,9 @@ public class UIManager : MonoBehaviour
                 {
                     case ObjectiveType.CollectSpecificCards:
                         CardData cardData = cardDataList.GetDataByID(firstObjective.specificCardID);
-                        if (cardData != null && !string.IsNullOrEmpty(cardData.cardName))
-                        {
-                            cardIDText.text = $"Target: Collect {cardData.cardName}";
-                        }
-                        else
-                        {
-                            Debug.LogWarning($"Card data not found for ID: {firstObjective.specificCardID}");
-                            cardIDText.text = $"Target: Collect Card {firstObjective.specificCardID}";
-                        }
+                        cardIDText.text = cardData != null && !string.IsNullOrEmpty(cardData.cardName)
+                            ? $"Target: Collect {cardData.cardName}"
+                            : $"Target: Collect Card {firstObjective.specificCardID}";
                         break;
                     case ObjectiveType.CollectCardAmount:
                         cardIDText.text = "Target: Collect Cards";
@@ -529,72 +441,52 @@ public class UIManager : MonoBehaviour
 
     public void UpdateObjectivesText(StageDefinition stage)
     {
-        if (objectivesText != null)
+        if (objectivesText == null) return;
+
+        string objectives = "";
+        foreach (var objective in stage.objectives)
         {
-            string objectives = "";
-            foreach (var objective in stage.objectives)
+            string progress = $"{objective.currentAmount}/{objective.targetAmount}";
+            string status = objective.isCompleted ? "✓" : "";
+
+            if (objective.type == ObjectiveType.CollectSpecificCards)
             {
-                string progress = $"{objective.currentAmount}/{objective.targetAmount}";
-                string status = objective.isCompleted ? "✓" : "";
-                
-                // Eğer belirli bir kart toplanacaksa
-                if (objective.type == ObjectiveType.CollectSpecificCards)
+                CardData cardData = cardDataList.GetDataByID(objective.specificCardID);
+                if (cardData != null && !string.IsNullOrEmpty(cardData.cardName))
                 {
-                    // CardDataList'ten kart bilgisini al
-                    CardData cardData = cardDataList.GetDataByID(objective.specificCardID);
-                    
-                    if (cardData != null && !string.IsNullOrEmpty(cardData.cardName))
-                    {
-                        objectives += $"Collect {cardData.cardName} {progress} {status}\n";
-                    }
-                    else
-                    {
-                        Debug.LogWarning($"Card data not found for ID: {objective.specificCardID}");
-                        objectives += $"Collect Card {objective.specificCardID} {progress} {status}\n";
-                    }
+                    objectives += $"Collect {cardData.cardName} {progress} {status}\n";
                 }
                 else
                 {
-                    objectives += $"{objective.description} {progress} {status}\n";
+                    Debug.LogWarning($"Card data not found for ID: {objective.specificCardID}");
+                    objectives += $"Collect Card {objective.specificCardID} {progress} {status}\n";
                 }
             }
-            objectivesText.text = objectives;
+            else
+            {
+                objectives += $"{objective.description} {progress} {status}\n";
+            }
         }
+        objectivesText.text = objectives;
     }
+    #endregion
 
-    private CardData FindCardDataByID(int cardID)
-    {
-        if (cardDataList != null)
-        {
-            return cardDataList.GetDataByID(cardID);
-        }
-        return null;
-    }
-
+    #region Stage & Level Event Handlers
     private void OnStageStart(StageDefinition stage)
     {
         if (stageNameText != null)
-        {
             stageNameText.text = $"Stage {levelManager.currentStageIndex + 1}: {stage.stageName}";
-        }
-        
-        // Stage transition panelini kapat
-        if (stageTransitionPanel != null)
-        {
-            stageTransitionPanel.SetActive(false);
-        }
-        
+
+        stageTransitionPanel?.SetActive(false);
         UpdateObjectiveUI(stage);
         UpdateObjectivesText(stage);
     }
 
     private void OnStageComplete(StageDefinition stage)
     {
-        // Son aşama değilse aşama geçiş panelini göster
         if (levelManager != null && levelManager.currentLevel != null)
         {
             bool isLastStage = levelManager.currentStageIndex == levelManager.currentLevel.stages.Count - 1;
-            
             if (!isLastStage && stageTransitionPanel != null)
             {
                 stageTransitionPanel.SetActive(true);
@@ -605,8 +497,6 @@ public class UIManager : MonoBehaviour
     private void OnLevelComplete(LevelDefinition level)
     {
         ShowLevelCompletePanel();
-        
-        // Bir sonraki leveli kaydet
         int nextLevel = level.levelNumber + 1;
         if (nextLevel <= LevelContainer.Instance.GetTotalLevelCount())
         {
@@ -619,7 +509,9 @@ public class UIManager : MonoBehaviour
     {
         UpdateObjectiveProgress(objective);
     }
+    #endregion
 
+    #region Panel Display Methods
     public void ShowLevelCompletePanel()
     {
         GameManager.IsPopupActive = true;
@@ -655,10 +547,11 @@ public class UIManager : MonoBehaviour
             }
         }
     }
+    #endregion
 
+    #region Gameplay Control Methods
     public async void OnPlayButtonClicked()
     {
-        // MainMenuUI'ı gizle ve temizle
         if (currentMainMenuUI != null)
         {
             currentMainMenuUI.SetActive(false);
@@ -666,16 +559,13 @@ public class UIManager : MonoBehaviour
             currentMainMenuUI = null;
         }
 
-        // GameplayUI'ı hazırla
         SetupGameplayUI();
 
-        // Mevcut level'ı al
         int currentLevelIndex = PlayerPrefs.GetInt("CurrentLevel", 1);
         LevelDefinition levelToLoad = LevelContainer.Instance.GetLevel(currentLevelIndex);
 
         Debug.Log($"Loading level: {levelToLoad?.levelName ?? "null"}");
 
-        // Level kontrolü
         if (levelToLoad == null)
         {
             Debug.LogError("Could not load level data!");
@@ -683,7 +573,6 @@ public class UIManager : MonoBehaviour
             return;
         }
 
-        // GameManager ve LevelManager'ı başlat
         if (gameManager != null)
         {
             gameManager.enabled = true;
@@ -707,17 +596,9 @@ public class UIManager : MonoBehaviour
 
     public void ReturnToMainMenu()
     {
-        if (levelManager != null)
-        {
-            levelManager.ResetLevel();
-        }
-        
-        if (gameManager != null)
-        {
-            gameManager.ResetGame();
-        }
+        levelManager?.ResetLevel();
+        gameManager?.ResetGame();
 
-        // Mevcut GameplayUI'ı temizle
         if (currentGameplayUI != null)
         {
             Destroy(currentGameplayUI);
@@ -726,54 +607,27 @@ public class UIManager : MonoBehaviour
         
         ShowMainMenu();
     }
+    #endregion
 
-    private void OnDestroy()
-    {
-        if (levelManager != null)
-        {
-            levelManager.onStageStart.RemoveListener(OnStageStart);
-            levelManager.onStageComplete.RemoveListener(OnStageComplete);
-            levelManager.onLevelComplete.RemoveListener(OnLevelComplete);
-            levelManager.onObjectiveProgress.RemoveListener(OnObjectiveProgress);
-        }
-    }
-
+    #region Player Data Methods
     public void SetLevel(int levelIndex)
     {
         PlayerPrefs.SetInt("CurrentLevel", levelIndex);
         PlayerPrefs.Save();
         
-        if (LevelManager.Instance != null)
-        {
-            LevelManager.Instance.LoadLevel(levelIndex);
-        }
+        LevelManager.Instance?.LoadLevel(levelIndex);
     }
 
     public void LoadCurrentLevel()
     {
-        if (LevelManager.Instance != null)
-        {
-            LevelManager.Instance.LoadLevelFromPlayerPrefs();
-        }
+        LevelManager.Instance?.LoadLevelFromPlayerPrefs();
     }
 
-    private void Update()
+    public void ResetPlayerData()
     {
-        if(Input.GetKeyDown(KeyCode.R)) // R tuşuna basıldığında reset
-        {
-            ResetPlayerData();
-        }
-    }
-
-        public void ResetPlayerData()
-    {
-        // Belirli bir anahtarı silmek için:
-        // PlayerPrefs.DeleteKey("HighestCompletedLevel");
-
-        // Tüm PlayerPrefs verilerini temizlemek için:
         PlayerPrefs.DeleteAll();
         PlayerPrefs.Save();
-
         Debug.Log("Player data has been reset.");
     }
+    #endregion
 }

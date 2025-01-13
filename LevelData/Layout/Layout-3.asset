@@ -45,7 +45,7 @@ MonoBehaviour:
       posY: -1
       isCardHidden: 0
   - layerName: Layer 2
-    zIndex: -0.1
+    zIndex: -1
     positions:
     - posX: -2
       posY: 1
@@ -60,32 +60,41 @@ MonoBehaviour:
       posY: -1
       isCardHidden: 0
   - layerName: Layer 3
-    zIndex: -0.2
+    zIndex: -2
     positions:
-    - posX: 0
-      posY: 0
+    - posX: -1.5
+      posY: 3
       isCardHidden: 0
-    - posX: 0
-      posY: 0
+    - posX: -0.5
+      posY: 3
       isCardHidden: 0
-    - posX: 0
-      posY: 0
+    - posX: 0.5
+      posY: 3
       isCardHidden: 0
-    - posX: 0
-      posY: 0
+    - posX: 1.5
+      posY: 3
       isCardHidden: 0
-    - posX: 0
-      posY: 0
+    - posX: -1.5
+      posY: 1
       isCardHidden: 0
-    - posX: 0
-      posY: 0
+    - posX: -0.5
+      posY: 1
       isCardHidden: 0
-    - posX: 0
-      posY: 0
+    - posX: 0.5
+      posY: 1
       isCardHidden: 0
-    - posX: 0
-      posY: 0
+    - posX: 1.5
+      posY: 1
       isCardHidden: 0
-    - posX: 0
-      posY: 0
+    - posX: -1.5
+      posY: -1
+      isCardHidden: 0
+    - posX: -0.5
+      posY: -1
+      isCardHidden: 0
+    - posX: 0.5
+      posY: -1
+      isCardHidden: 0
+    - posX: 1.5
+      posY: -1
       isCardHidden: 0

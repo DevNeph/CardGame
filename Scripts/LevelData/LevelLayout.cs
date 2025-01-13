@@ -5,6 +5,8 @@ using System.Collections.Generic;
 using UnityEditor;
 #endif
 
+#region Data Definitions
+
 [CreateAssetMenu(menuName = "MyGame/Layout Data", fileName = "NewLayoutData")]
 public class LayoutData : ScriptableObject
 {
@@ -66,7 +68,11 @@ public class CardPosition
     }
 }
 
+#endregion
+
 #if UNITY_EDITOR
+#region Custom Editor for LayoutData
+
 [CustomEditor(typeof(LayoutData))]
 public class LayoutDataEditor : Editor
 {
@@ -88,9 +94,8 @@ public class LayoutDataEditor : Editor
         for (int i = 0; i < layoutData.layers.Count; i++)
         {
             EditorGUILayout.BeginVertical(EditorStyles.helpBox);
-            
             var layer = layoutData.layers[i];
-            
+
             EditorGUILayout.BeginHorizontal();
             EditorGUILayout.LabelField($"Layer {i + 1}", EditorStyles.boldLabel);
             if (GUILayout.Button("Remove Layer", GUILayout.Width(100)))
@@ -115,30 +120,21 @@ public class LayoutDataEditor : Editor
                 EditorGUILayout.BeginHorizontal(EditorStyles.helpBox);
                 
                 EditorGUILayout.LabelField($"Pos {j + 1}", GUILayout.Width(40));
-                
                 var pos = layer.positions[j];
                 
-                // X, Y değerlerini yan yana göster
                 EditorGUILayout.LabelField("X:", GUILayout.Width(15));
                 float newX = EditorGUILayout.FloatField(pos.x, GUILayout.Width(50));
                 
                 EditorGUILayout.LabelField("Y:", GUILayout.Width(15));
                 float newY = EditorGUILayout.FloatField(pos.y, GUILayout.Width(50));
-                
-                // Hidden özelliği geçici olarak devre dışı
-                //EditorGUILayout.LabelField("Hidden:", GUILayout.Width(45));
-                //bool newHidden = EditorGUILayout.Toggle(pos.isHidden, GUILayout.Width(20));
 
-                //if (newX != pos.x || newY != pos.y || newHidden != pos.isHidden)
                 if (newX != pos.x || newY != pos.y)
                 {
                     pos.x = newX;
                     pos.y = newY;
-                    //pos.isHidden = newHidden;
                     EditorUtility.SetDirty(layoutData);
                 }
 
-                // Silme butonu
                 if (GUILayout.Button("X", GUILayout.Width(20)))
                 {
                     layer.positions.RemoveAt(j);
@@ -159,17 +155,16 @@ public class LayoutDataEditor : Editor
             EditorGUILayout.Space(5);
         }
 
-            if (GUILayout.Button("Add New Layer"))
+        if (GUILayout.Button("Add New Layer"))
+        {
+            layoutData.layers.Add(new LayerConfiguration
             {
-                layoutData.layers.Add(new LayerConfiguration
-                {
-                    layerName = $"Layer {layoutData.layers.Count + 1}",
-                    // Z değerini tersine çeviriyoruz: Her yeni layer daha arkaya gidecek
-                    zIndex = layoutData.layers.Count * -0.1f,
-                    positions = new List<CardPosition>()
-                });
-                EditorUtility.SetDirty(layoutData);
-            }
+                layerName = $"Layer {layoutData.layers.Count + 1}",
+                zIndex = layoutData.layers.Count * -0.1f,
+                positions = new List<CardPosition>()
+            });
+            EditorUtility.SetDirty(layoutData);
+        }
 
         if (EditorGUI.EndChangeCheck())
         {
@@ -178,4 +173,6 @@ public class LayoutDataEditor : Editor
         }
     }
 }
+
+#endregion
 #endif

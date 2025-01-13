@@ -14,7 +14,6 @@ public class ObjectiveEvent : UnityEvent<StageObjective> { }
 
 public class LevelManager : MonoBehaviour
 {
-
     private static LevelManager _instance;
     public static LevelManager Instance
     {
@@ -47,7 +46,7 @@ public class LevelManager : MonoBehaviour
     private CardDealer cardDealer;
     private GameManager gameManager;
 
-    private bool isInitialized = false; // Eklenen satır
+    private bool isInitialized = false;
     private bool isGameStarted = false;
 
     #region Unity Lifecycle
@@ -72,8 +71,6 @@ public class LevelManager : MonoBehaviour
         }
 
         InitializeEvents();
-        // LoadLevelFromPlayerPrefs(); -> Bunu kaldırıyoruz
-        
         // Başlangıçta component'i deaktif et
         enabled = false;
         
@@ -100,7 +97,7 @@ public class LevelManager : MonoBehaviour
 
     public void LoadLevelFromPlayerPrefs()
     {
-        if (!isGameStarted) return; // Oyun başlamadıysa yükleme yapma
+        if (!isGameStarted) return;
         
         int levelIndex = PlayerPrefs.GetInt("CurrentLevel", 1);
         LoadLevel(levelIndex);
@@ -108,7 +105,7 @@ public class LevelManager : MonoBehaviour
 
     public void LoadLevel(int levelIndex)
     {
-        if (!isGameStarted) return; // Oyun başlamadıysa yükleme yapma
+        if (!isGameStarted) return;
 
         currentLevel = LevelContainer.Instance.GetLevel(levelIndex);
 
@@ -121,10 +118,8 @@ public class LevelManager : MonoBehaviour
         InitializeLevel();
         Debug.Log($"[LevelManager] Loaded level {levelIndex}");
     }
-    private void Start()
-    {
-    }
 
+    private void Start() { }
     #endregion
 
     #region Initialization
@@ -148,11 +143,12 @@ public class LevelManager : MonoBehaviour
 
     private void ValidateReferences()
     {
+        // Yeni yöntem kullanarak referansları doğrula
         if (cardDealer == null)
-            cardDealer = FindFirstObjectByType<CardDealer>();
+            cardDealer = Object.FindFirstObjectByType<CardDealer>();
         
         if (gameManager == null)
-            gameManager = FindFirstObjectByType<GameManager>();
+            gameManager = Object.FindFirstObjectByType<GameManager>();
 
         if (cardDealer == null || gameManager == null)
         {
@@ -170,14 +166,12 @@ public class LevelManager : MonoBehaviour
 
         Debug.Log($"[LevelManager] Starting level {currentLevel.levelName} with {currentLevel.stages.Count} stages");
         
-        // Level'ı PlayerPrefs'e kaydet
         PlayerPrefs.SetInt("CurrentLevel", currentLevel.levelNumber);
         PlayerPrefs.Save();
         
         currentStageIndex = 0;
         StartStage(0);
     }
-
     #endregion
 
     #region Stage Management
@@ -249,15 +243,12 @@ public class LevelManager : MonoBehaviour
     #region Objective Management
     public void OnCardMatched(int cardID)
     {
-        Debug.Log($"Card matched - ID: {cardID}"); // Debug için ekleyin
+        Debug.Log($"Card matched - ID: {cardID}");
         var stage = currentLevel.stages[currentStageIndex];
-        var totalMatched = 0; // Toplam eşleşme sayısını tut
 
         foreach (var objective in stage.objectives)
         {
             UpdateObjectiveForCard(objective, cardID);
-            
-            // Debug çıktısı ekleyin
             Debug.Log($"Objective Progress - Type: {objective.type}, Current: {objective.currentAmount}, Target: {objective.targetAmount}");
         }
         
@@ -266,36 +257,31 @@ public class LevelManager : MonoBehaviour
 
     private void UpdateObjectiveForCard(StageObjective objective, int cardID)
     {
-        // UpdateObjectiveProgress metodunu KALDIR, direkt burada güncelle
         switch (objective.type)
         {
             case ObjectiveType.CollectSpecificCards:
                 if (cardID == objective.specificCardID)
                 {
-                    objective.currentAmount += 3; // Sadece 3 kart ekle
+                    objective.currentAmount += 3;
                     Debug.Log($"Added 3 specific cards (ID: {cardID}). Current: {objective.currentAmount}/{objective.targetAmount}");
                 }
                 break;
-            
             case ObjectiveType.CollectCardAmount:
-                objective.currentAmount += 3; // Sadece 3 kart ekle
+                objective.currentAmount += 3;
                 Debug.Log($"Added 3 cards. Current: {objective.currentAmount}/{objective.targetAmount}");
                 break;
-
             case ObjectiveType.MatchPairs:
-                objective.currentAmount += 1; // 1 eşleşme ekle
+                objective.currentAmount += 1;
                 Debug.Log($"Added 1 match. Current: {objective.currentAmount}/{objective.targetAmount}");
                 break;
         }
 
-        // Tamamlanma kontrolü
         if (objective.currentAmount >= objective.targetAmount)
         {
             objective.isCompleted = true;
             Debug.Log($"Objective completed: {objective.type}");
         }
 
-        // UI'ı güncelle
         onObjectiveProgress?.Invoke(objective);
     }
 
@@ -311,8 +297,6 @@ public class LevelManager : MonoBehaviour
             {
                 completedObjectives++;
             }
-            
-            // Debug için her objective'in durumunu yazdır
             Debug.Log($"Objective: {objective.type}, Progress: {objective.currentAmount}/{objective.targetAmount}, Completed: {objective.isCompleted}");
         }
 

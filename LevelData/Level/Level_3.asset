@@ -16,18 +16,18 @@ MonoBehaviour:
   levelNumber: 3
   stages:
   - stageName: Level3-1
-    layoutData: {fileID: 11400000, guid: 5eef52eb484092d47804ac1e469e04b7, type: 2}
+    layoutData: {fileID: 11400000, guid: 6b110ef92c6707f4c8ae73484b161f84, type: 2}
     allowedCardIDs: 0000000001000000020000000d0000000e000000
-    totalCardsInStage: 9
+    totalCardsInStage: 25
     isCompleted: 0
     timeLimit: 0
     moveLimit: 0
     objectives:
-    - type: 0
+    - type: 1
       description: 
-      targetAmount: 6
-      currentAmount: 0
-      specificCardID: 13
+      targetAmount: 21
+      currentAmount: 3
+      specificCardID: 0
       isCompleted: 0
   levelThumbnail: {fileID: 0}
   starsRequired: 0

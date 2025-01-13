@@ -4,10 +4,14 @@ using UnityEngine.UI;
 
 public class Slot : MonoBehaviour
 {
+    #region Fields
     [Header("Slot Info")]
     public bool isOccupied = false; 
     public Card occupantCard; // Hangi kart bu slota yerleşti
     public GameManager gameManager;
+    #endregion
+
+    #region Public Methods
 
     /// <summary>
     /// Tıklama senaryosunda, kart bu fonksiyonla slota "taşınır."
@@ -39,8 +43,6 @@ public class Slot : MonoBehaviour
         }
     }
 
-
-
     /// <summary>
     /// Slotu boşaltma (kart silinince veya başka yolla).
     /// </summary>
@@ -49,4 +51,6 @@ public class Slot : MonoBehaviour
         occupantCard = null;
         isOccupied = false;
     }
+
+    #endregion
 }

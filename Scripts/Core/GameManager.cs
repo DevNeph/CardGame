@@ -10,7 +10,7 @@ public class GameManager : MonoBehaviour
     
     [Header("Slot Configuration")]
     [SerializeField] private GameObject slotPrefab;
-    [SerializeField] private Transform slotParent; // Slot'ların parent'ı (opsiyonel)
+    [SerializeField] private Transform slotParent;
     
     private readonly Vector3[] slotPositions = new Vector3[]
     {
@@ -46,7 +46,6 @@ public class GameManager : MonoBehaviour
         Instance = this;
         DontDestroyOnLoad(gameObject);
 
-        // Componentleri al
         levelManager = GetComponent<LevelManager>();
         cardDealer = GetComponent<CardDealer>();
 
@@ -56,14 +55,12 @@ public class GameManager : MonoBehaviour
             return;
         }
 
-        // Slot prefab kontrolü
         if (slotPrefab == null)
         {
             Debug.LogError("[GameManager] Slot prefab is not assigned!");
             return;
         }
 
-        // Parent yoksa oluştur
         if (slotParent == null)
         {
             GameObject parentObj = new GameObject("Slots");
@@ -90,6 +87,7 @@ public class GameManager : MonoBehaviour
     }
 
     #endregion
+
     #region Slots
     private void CreateSlots()
     {
@@ -98,28 +96,22 @@ public class GameManager : MonoBehaviour
 
         for (int i = 0; i < slotPositions.Length; i++)
         {
-            // Slot'u oluştur
             GameObject slotObj = Instantiate(slotPrefab, slotPositions[i], Quaternion.identity, slotParent);
             slotObj.name = $"Slot_{i}";
 
-            // Slot component'ini al
             Slot slot = slotObj.GetComponent<Slot>();
             if (slot == null)
             {
-                Debug.LogError($"[GameManager] Slot component missing on prefab!");
+                Debug.LogError("[GameManager] Slot component missing on prefab!");
                 continue;
             }
 
-            // Slot'u kaydet ve initialize et
             slots[i] = slot;
             slotOccupied[i] = false;
-            
-            // Pozisyonu ayarla
             slotObj.transform.localPosition = slotPositions[i];
         }
     }
 
-        // Slot işlemleri için yardımcı metodlar
     public bool IsSlotAvailable(int index)
     {
         return index >= 0 && index < slotOccupied.Length && !slotOccupied[index];
@@ -147,57 +139,23 @@ public class GameManager : MonoBehaviour
         }
         return -1;
     }
-    
     #endregion
+
     #region Initialization
-
-    private void InitializeComponents()
-    {
-        // Component referanslarını kontrol et
-        if (levelManager == null) levelManager = GetComponent<LevelManager>();
-        if (cardDealer == null) cardDealer = GetComponent<CardDealer>();
-
-        // Null check
-        if (levelManager == null || cardDealer == null)
-        {
-            Debug.LogError($"Missing required components! LevelManager: {levelManager != null}, CardDealer: {cardDealer != null}");
-        }
-
-        // Slot kontrolü
-        if (slots == null || slots.Length == 0)
-        {
-            Debug.LogError("No slots assigned!");
-        }
-
-        if (slotPositions == null || slotPositions.Length == 0)
-        {
-            Debug.LogError("No slot positions assigned!");
-        }
-
-        if (slots.Length != slotPositions.Length)
-        {
-            Debug.LogError($"Slot count ({slots.Length}) does not match position count ({slotPositions.Length})!");
-        }
-    }
 
     private void InitializeSlots()
     {
         removedCardCount = 0;
         slotOccupied = new bool[slotPositions.Length];
         collectedCards.Clear();
-        
-        // UI güncelleme
-        if (UIManager.Instance != null)
-        {
-            UIManager.Instance.UpdateRemovedCardText(removedCardCount);
-        }
+
+        UIManager.Instance?.UpdateRemovedCardText(removedCardCount);
     }
 
     private void SetupEventListeners()
     {
         if (levelManager != null)
         {
-            // Event listener'ları ekle
             levelManager.onStageStart.AddListener(OnStageStart);
             levelManager.onStageComplete.AddListener(OnStageComplete);
             levelManager.onLevelComplete.AddListener(OnLevelComplete);
@@ -207,7 +165,6 @@ public class GameManager : MonoBehaviour
 
     private void RemoveEventListeners()
     {
-        // Event listener'ları temizle
         levelManager.onStageStart.RemoveListener(OnStageStart);
         levelManager.onStageComplete.RemoveListener(OnStageComplete);
         levelManager.onLevelComplete.RemoveListener(OnLevelComplete);
@@ -231,7 +188,7 @@ public class GameManager : MonoBehaviour
 
         if (levelManager != null)
         {
-            await Task.Yield(); // Frame geçişi için bekle
+            await Task.Yield();
             levelManager.currentLevel = level;
             levelManager.StartGame();
         }
@@ -245,10 +202,7 @@ public class GameManager : MonoBehaviour
         collectedCards.Clear();
         removedCardCount = 0;
 
-        if (levelManager != null)
-        {
-            levelManager.ResetLevel();
-        }
+        levelManager?.ResetLevel();
     }
 
     #endregion
@@ -271,47 +225,7 @@ public class GameManager : MonoBehaviour
             return;
         }
 
-        // Coroutine yerine direkt metod çağrısı
         PlaceCardInSlot(clickedCard, slotIndex);
-    }
-
-
-    private IEnumerator PlaceCardInSlotCoroutine(Card card, int slotIndex)
-    {
-        if (slotIndex >= 0 && slotIndex < slots.Length)
-        {
-            Slot slot = slots[slotIndex];
-            Vector3 startPos = card.transform.position;
-            Vector3 targetPos = slotPositions[slotIndex];
-            float duration = 0;
-            float elapsed = 0;
-
-            while (elapsed < duration)
-            {
-                elapsed += Time.deltaTime;
-                float t = elapsed / duration;
-                card.transform.position = Vector3.Lerp(startPos, targetPos, t);
-                yield return null;
-            }
-
-            // Final pozisyonu garantile
-            card.transform.position = targetPos;
-            
-            // Kartı slota yerleştir
-            slot.PlaceCard(card);
-            card.PlaceInSlot();
-            slotOccupied[slotIndex] = true;
-
-            // Eşleşmeleri kontrol et
-            bool matchFound = CheckAndRemoveMatches(card.cardID);
-
-            if (slotIndex == slots.Length - 1 && !matchFound)
-            {
-                UIManager.Instance?.ShowLevelFailedPanel();
-            }
-
-            UpdateAllCardsAppearance();
-        }
     }
 
     private void PlaceCardInSlot(Card card, int slotIndex)
@@ -319,16 +233,11 @@ public class GameManager : MonoBehaviour
         if (slotIndex >= 0 && slotIndex < slots.Length)
         {
             Slot slot = slots[slotIndex];
-            
-            // Kartı direkt olarak hedef pozisyona yerleştir
             card.transform.position = slotPositions[slotIndex];
-            
-            // Kartı slota yerleştir
             slot.PlaceCard(card);
             card.PlaceInSlot();
             slotOccupied[slotIndex] = true;
 
-            // Eşleşmeleri kontrol et
             bool matchFound = CheckAndRemoveMatches(card.cardID);
 
             if (slotIndex == slots.Length - 1 && !matchFound)
@@ -342,7 +251,6 @@ public class GameManager : MonoBehaviour
 
     private bool CheckAndRemoveMatches(int cardID)
     {
-        // Eşleşen kartları say
         int count = CountMatchingCards(cardID);
 
         if (count >= 3)
@@ -373,8 +281,6 @@ public class GameManager : MonoBehaviour
 
     private void RemoveMatchingCards(int cardID)
     {
-        int destroyed = 0;
-
         for (int i = 0; i < slots.Length; i++)
         {
             if (slots[i].isOccupied && slots[i].occupantCard != null && slots[i].occupantCard.cardID == cardID)
@@ -382,11 +288,12 @@ public class GameManager : MonoBehaviour
                 Destroy(slots[i].occupantCard.gameObject);
                 slots[i].ClearSlot();
                 slotOccupied[i] = false;
-                destroyed++;
             }
         }
 
-        AddRemovedCard(destroyed);
+        // Removed card count güncellemesi
+        int removedCount = CountMatchingCards(cardID);
+        AddRemovedCard(removedCount);
     }
 
     #endregion
@@ -395,14 +302,10 @@ public class GameManager : MonoBehaviour
 
     public void UpdateAllCardsAppearance()
     {
-        // Tüm kartları bul
-        var allCards = FindObjectsByType<Card>(FindObjectsSortMode.None);
+        var allCards = Object.FindObjectsByType<Card>(FindObjectsSortMode.None);
         foreach (var card in allCards)
         {
-            if (card != null)
-            {
-                card.UpdateCardAppearance();
-            }
+            card?.UpdateCardAppearance();
         }
     }
 
@@ -427,18 +330,15 @@ public class GameManager : MonoBehaviour
 
     private void MoveCardToSlot(int fromIndex, int toIndex)
     {
-        if (fromIndex < 0 || fromIndex >= slots.Length || 
-            toIndex < 0 || toIndex >= slots.Length)
+        if (fromIndex < 0 || fromIndex >= slots.Length || toIndex < 0 || toIndex >= slots.Length)
             return;
 
         Card movingCard = slots[fromIndex].occupantCard;
         if (movingCard == null) return;
 
-        // Önce eski slotu temizle
         slots[fromIndex].ClearSlot();
         slotOccupied[fromIndex] = false;
 
-        // Yeni slota yerleştir
         slots[toIndex].PlaceCard(movingCard);
         slotOccupied[toIndex] = true;
         movingCard.transform.position = slotPositions[toIndex];
@@ -455,7 +355,7 @@ public class GameManager : MonoBehaviour
 
     private void ClearAllCards()
     {
-        var allCards = FindObjectsByType<Card>(FindObjectsSortMode.None);
+        var allCards = Object.FindObjectsByType<Card>(FindObjectsSortMode.None);
         foreach (var card in allCards)
         {
             Destroy(card.gameObject);
