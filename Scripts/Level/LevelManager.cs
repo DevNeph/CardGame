@@ -346,7 +346,8 @@ public class LevelManager : MonoBehaviour
             return;
         }
 
-        Debug.Log($"Loading layout: {layout.layoutName} with {layout.positions.Count} positions");
+        var totalPositions = layout.layers.Sum(layer => layer.positions.Count);
+        Debug.Log($"Loading layout: {layout.layoutName} with {totalPositions} positions in {layout.layers.Count} layers");
 
         if (cardDealer != null)
         {

@@ -6,7 +6,7 @@ public class CardDealer : MonoBehaviour
 {
     #region Inspector Fields
     [Header("Required References")]
-    [SerializeField] private CardDataList cardDataList;
+    [SerializeField] public CardDataList cardDataList;
     [SerializeField] private GameObject cardPrefab;
 
     [Header("Debug Settings")]
@@ -231,58 +231,146 @@ public class CardDealer : MonoBehaviour
     {
         if (!ValidateLayout()) return;
 
-        // Pozisyonları sırala, ama z pozisyonunu özel olarak ele al
-        var sortedPositions = currentLayout.positions
-            .OrderByDescending(p => p.layer) // Z yerine layer'a göre sırala
-            .Take(workingDeck.Count)
-            .ToList();
+        List<(Vector3 position, bool isHidden, int layerIndex)> allPositions = GetAllPositions();
+        int totalPositions = allPositions.Count;
 
-        for (int i = 0; i < sortedPositions.Count && i < workingDeck.Count; i++)
+        // Önce spesifik hedef kartları yerleştir
+        List<int> remainingCards = new List<int>(workingDeck);
+        List<int> targetCards = GetTargetCards();
+        
+        // Hedef kartları yerleştir
+        foreach (var cardId in targetCards)
         {
-            SpawnCard(workingDeck[i], sortedPositions[i], i); // index'i de gönder
+            if (remainingCards.Contains(cardId))
+            {
+                remainingCards.Remove(cardId);
+            }
+        }
+
+        // Kalan pozisyonları random kartlarla doldur
+        int remainingPositions = totalPositions - targetCards.Count;
+        if (remainingPositions > 0 && remainingCards.Count > 0)
+        {
+            FillRemainingPositions(
+                remainingPositions, 
+                remainingCards, 
+                allPositions.Skip(targetCards.Count).ToList()
+            );
         }
 
         GameManager.Instance?.UpdateAllCardsAppearance();
     }
+
+    private List<(Vector3, bool, int)> GetAllPositions()
+    {
+        List<(Vector3 position, bool isHidden, int layerIndex)> allPositions = new List<(Vector3, bool, int)>();
+
+        // Layer'ları tersten dönüyoruz ki en üstteki layer en küçük z değerini alsın
+        for (int i = currentLayout.layers.Count - 1; i >= 0; i--)
+        {
+            var layer = currentLayout.layers[i];
+            foreach (var pos in layer.positions)
+            {
+                // Z değerini layer indexine göre ayarlıyoruz
+                // En üstteki layer (en son layer) z=0'da olacak
+                // Alttaki layer'lar negatif z değerlerine sahip olacak
+                float zPos = (currentLayout.layers.Count - 1 - i) * -0.1f;
+                Vector3 worldPos = new Vector3(pos.x, pos.y, zPos);
+                allPositions.Add((worldPos, pos.isHidden, i));
+            }
+        }
+
+        // OrderBy kullanmaya gerek yok çünkü zaten doğru sırada oluşturuyoruz
+        return allPositions;
+    }
+
+    private List<int> GetTargetCards()
+    {
+        List<int> targetCards = new List<int>();
+
+        if (currentStage?.objectives != null)
+        {
+            foreach (var objective in currentStage.objectives)
+            {
+                if (objective.type == ObjectiveType.CollectSpecificCards && objective.specificCardID >= 0)
+                {
+                    // Hedef kartları ekle
+                    int requiredCount = objective.targetAmount;
+                    for (int i = 0; i < requiredCount; i++)
+                    {
+                        targetCards.Add(objective.specificCardID);
+                    }
+                }
+            }
+        }
+
+        return targetCards;
+    }
+
+    private void FillRemainingPositions(int positionCount, List<int> availableCards, List<(Vector3 position, bool isHidden, int layerIndex)> positions)
+    {
+        if (availableCards.Count == 0) return;
+
+        // Kalan kartları karıştır
+        List<int> shuffledCards = new List<int>(availableCards);
+        for (int i = shuffledCards.Count - 1; i > 0; i--)
+        {
+            int randIndex = Random.Range(0, i + 1);
+            (shuffledCards[i], shuffledCards[randIndex]) = (shuffledCards[randIndex], shuffledCards[i]);
+        }
+
+        // Her pozisyona random kart yerleştir
+        int cardIndex = 0;
+        for (int i = 0; i < positionCount && i < positions.Count; i++)
+        {
+            var (position, isHidden, layerIndex) = positions[i];
+            
+            if (cardIndex >= shuffledCards.Count)
+            {
+                cardIndex = 0; // Kartlar bittiyse baştan başla
+            }
+
+            SpawnCard(shuffledCards[cardIndex], position, isHidden, layerIndex);
+            cardIndex++;
+        }
+    }
+
     private bool ValidateLayout()
     {
-        if (currentLayout == null || currentLayout.positions == null)
+        if (currentLayout == null || currentLayout.layers == null || currentLayout.layers.Count == 0)
         {
             Debug.LogError("No valid layout data!");
             return false;
         }
 
-        if (currentLayout.positions.Count < workingDeck.Count)
+        int totalPositions = currentLayout.layers.Sum(layer => layer.positions.Count);
+        
+        // Minimum pozisyon kontrolünü kaldır, artık 3'ün katı olma zorunluluğu yok
+        if (totalPositions == 0)
         {
-            Debug.LogError($"Not enough positions ({currentLayout.positions.Count}) for cards ({workingDeck.Count})!");
+            Debug.LogError("No positions defined in layout!");
             return false;
         }
 
         return true;
     }
 
-    private void SpawnCard(int cardID, LayoutPosition pos, int index)
+    private void SpawnCard(int cardID, Vector3 position, bool isHidden, int layerIndex)
     {
         var cardData = cardDataList.GetDataByID(cardID);
         if (cardData == null) return;
 
-        // Z pozisyonunu index'e göre ayarla
-        Vector3 spawnPosition = new Vector3(
-            pos.position.x, 
-            pos.position.y, 
-            -index * 0.01f // Negatif değer kullan (küçük Z = öne)
-        );
-
-        var cardObj = Instantiate(cardPrefab, spawnPosition, Quaternion.Euler(0, 0, pos.rotation));
+        var cardObj = Instantiate(cardPrefab, position, Quaternion.identity);
         var card = cardObj.GetComponent<Card>();
 
         if (card != null)
         {
-            card.SetupCard(cardID, cardData.cardSprite, pos.isHidden);
-            card.SetLayerIndex(pos.layer);
+            card.SetupCard(cardID, cardData.cardSprite, isHidden);
+            card.SetLayerIndex(layerIndex);
             card.UpdateCardAppearance();
         }
     }
+
     #endregion
 
     #region Public Methods
@@ -291,7 +379,8 @@ public class CardDealer : MonoBehaviour
         currentLayout = layout ?? throw new System.ArgumentNullException(nameof(layout));
         if (showDebugLogs)
         {
-            Debug.Log($"Layout set: {layout.layoutName} with {layout.positions.Count} positions");
+            var totalPositions = layout.layers.Sum(layer => layer.positions.Count);
+            Debug.Log($"Layout set: {layout.layoutName} with {totalPositions} positions in {layout.layers.Count} layers");
         }
     }
 

@@ -6,8 +6,9 @@ public class Card : MonoBehaviour
     public int cardID;
     private bool isHidden;
     private SpriteRenderer spriteRenderer;
+    private static readonly Color COVERED_CARD_COLOR = new Color(0.8f, 0.8f, 0.8f, 1f);
     private bool isInSlot = false;
-    private int layerIndex; 
+    private int layerIndex;
     public bool isInteractable = true;
 
     private GameManager gm;
@@ -31,13 +32,20 @@ public class Card : MonoBehaviour
     public void SetLayerIndex(int index)
     {
         layerIndex = index;
-        // Z pozisyonunu layer indexine göre güncelle
         Vector3 pos = transform.position;
-        // Mevcut z pozisyonunu koru, sadece ince ayar yap
-        pos.z += (index * 0.01f); // Çok küçük bir offset ekle
+        // Z değerini layer indexine göre güncelle
+        pos.z = -index * 0.1f; 
         transform.position = pos;
+
+        // SpriteRenderer'ın sorting order'ını z pozisyonuna göre ayarla
+        if (spriteRenderer != null)
+        {
+            // z değeri 0'dan -0.1, -0.2, -0.3 şeklinde gittiği için
+            // sorting order'ı da aynı şekilde ayarlıyoruz
+            spriteRenderer.sortingOrder = -index;
+        }
         
-        Debug.Log($"Card {cardID} layer index set to {index}, final z position: {pos.z}");
+        Debug.Log($"Card {cardID} layer index set to {index}, z position: {pos.z}, sorting order: {-index}");
     }
 
     public void SetupCard(int id, Sprite sprite, bool hidden)
@@ -89,9 +97,7 @@ public class Card : MonoBehaviour
     {
         if (spriteRenderer != null)
         {
-            Color color = spriteRenderer.color;
-            color.a = 0.5f; // Yarı saydam
-            spriteRenderer.color = color;
+            spriteRenderer.color = COVERED_CARD_COLOR; // Gri renk kullan
         }
     }
 
@@ -99,9 +105,7 @@ public class Card : MonoBehaviour
     {
         if (spriteRenderer != null)
         {
-            Color color = spriteRenderer.color;
-            color.a = 1f; // Tam opak
-            spriteRenderer.color = color;
+            spriteRenderer.color = Color.white; // Normal renk
         }
     }
 
@@ -139,35 +143,43 @@ public class Card : MonoBehaviour
             Card otherCard = overlap.GetComponent<Card>();
             if (otherCard != null && !otherCard.isInSlot)
             {
-                // Z pozisyonlarını karşılaştır
-                float thisZ = transform.position.z;
-                float otherZ = otherCard.transform.position.z;
-
-                // Debug için z pozisyonlarını yazdır
-                Debug.Log($"This card Z: {thisZ}, Other card Z: {otherZ}");
-
-                // Eğer diğer kart daha üstteyse (z değeri daha küçükse)
-                if (otherZ < thisZ)
+                // Eğer üstte bir kart varsa (sorting order daha büyükse)
+                // veya aynı sorting order'da ama daha önde bir kart varsa
+                if (otherCard.spriteRenderer.sortingOrder > spriteRenderer.sortingOrder)
                 {
-                    Debug.Log($"Card {cardID} is behind card {otherCard.cardID}");
-                    SetAsBehind(); // Kartı kararttık
                     return true;
-                }
-                else
-                {
-                    SetAsInFront(); // Kart öndeyse normal hale getirdik
                 }
             }
         }
 
-        // Hiçbir kartın arkasında değilse normal hale getir
-        SetAsInFront();
+        // Ayrıca bir üst layer'da herhangi bir kart var mı kontrol et
+        Collider2D[] allCards = FindObjectsByType<Collider2D>(FindObjectsSortMode.None);
+        foreach (var col in allCards)
+        {
+            Card otherCard = col.GetComponent<Card>();
+            if (otherCard != null && !otherCard.isInSlot && otherCard != this)
+            {
+                // Eğer kart üst layer'daysa ve pozisyonlar çakışıyorsa
+                if (otherCard.spriteRenderer.sortingOrder > spriteRenderer.sortingOrder)
+                {
+                    Vector2 otherPos = (Vector2)otherCard.transform.position;
+                    float xDiff = Mathf.Abs(boxPosition.x - otherPos.x);
+                    float yDiff = Mathf.Abs(boxPosition.y - otherPos.y);
+
+                    if (xDiff < boxSize.x && yDiff < boxSize.y)
+                    {
+                        return true;
+                    }
+                }
+            }
+        }
+
         return false;
     }
 
     public void UpdateCardAppearance()
     {
-        // Eğer slot'taysa rengi değiştirme ve orijinal scale'i koru
+        // Eğer slot'taysa rengi değiştirme
         if (isInSlot)
         {
             if (spriteRenderer != null)
@@ -187,12 +199,89 @@ public class Card : MonoBehaviour
         }
         else
         {
-            SetAsInFront();
-            if (boxCollider != null) boxCollider.enabled = true;
+            // Üstteki tüm kartların alınıp alınmadığını kontrol et
+            bool canBeRevealed = CanBeRevealed();
+            if (canBeRevealed)
+            {
+                SetAsInFront();
+                if (boxCollider != null) boxCollider.enabled = true;
+            }
+            else
+            {
+                SetAsBehind();
+                if (boxCollider != null) boxCollider.enabled = false;
+            }
         }
         
-        // Her durumda orijinal scale'i koru
         transform.localScale = originalScale;
     }
 
+private bool CanBeRevealed()
+    {
+        Vector2 thisPos = (Vector2)transform.position;
+        Collider2D[] allCards = FindObjectsByType<Collider2D>(FindObjectsSortMode.None);
+        int currentSortingOrder = spriteRenderer.sortingOrder;
+
+        // Kartın üzerinde başka bir kart var mı kontrol et
+        Card nearestUpperCard = null;
+        float minSortingOrder = float.MaxValue;
+
+        foreach (var col in allCards)
+        {
+            Card otherCard = col.GetComponent<Card>();
+            if (otherCard != null && !otherCard.isInSlot && otherCard != this)
+            {
+                Vector2 otherPos = (Vector2)otherCard.transform.position;
+                float xDiff = Mathf.Abs(thisPos.x - otherPos.x);
+                float yDiff = Mathf.Abs(thisPos.y - otherPos.y);
+
+                // Eğer pozisyonlar çakışıyorsa ve diğer kart daha üst layer'da ise
+                if (xDiff < boxCollider.size.x && yDiff < boxCollider.size.y && 
+                    otherCard.spriteRenderer.sortingOrder > currentSortingOrder)
+                {
+                    // Bu kartın üzerindeki en yakın kartı bul
+                    if (otherCard.spriteRenderer.sortingOrder < minSortingOrder)
+                    {
+                        minSortingOrder = otherCard.spriteRenderer.sortingOrder;
+                        nearestUpperCard = otherCard;
+                    }
+                }
+            }
+        }
+
+        // Eğer üstte kart varsa
+        if (nearestUpperCard != null)
+        {
+            // Üstteki kart tıklanabilir değilse, bu kart da kapalı kalmalı
+            if (!nearestUpperCard.boxCollider.enabled)
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private int FindNextUpperLayer(int currentSortingOrder, Collider2D[] allCards)
+    {
+        int nextLayer = -1;
+        
+        foreach (var col in allCards)
+        {
+            Card otherCard = col.GetComponent<Card>();
+            if (otherCard != null && !otherCard.isInSlot && otherCard != this)
+            {
+                int otherOrder = otherCard.spriteRenderer.sortingOrder;
+                if (otherOrder > currentSortingOrder)
+                {
+                    if (nextLayer == -1 || otherOrder < nextLayer)
+                    {
+                        nextLayer = otherOrder;
+                    }
+                }
+            }
+        }
+        
+        return nextLayer;
+    }
 }

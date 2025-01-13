@@ -16,7 +16,7 @@ MonoBehaviour:
   levelNumber: 2
   stages:
   - stageName: Level2-1
-    layoutData: {fileID: 11400000, guid: 31d940b8fd4a65c40a83f499b030681f, type: 2}
+    layoutData: {fileID: 11400000, guid: c4c01b7b4d62f614786de611039f9fee, type: 2}
     allowedCardIDs: 00000000010000000d000000
     totalCardsInStage: 18
     isCompleted: 0
