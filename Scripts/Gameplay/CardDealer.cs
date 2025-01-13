@@ -367,6 +367,8 @@ public class CardDealer : MonoBehaviour
         {
             card.SetupCard(cardID, cardData.cardSprite, isHidden);
             card.SetLayerIndex(layerIndex);
+            
+            // Kartın görünümünü hemen güncelle
             card.UpdateCardAppearance();
         }
     }
