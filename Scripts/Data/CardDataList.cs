@@ -1,50 +1,126 @@
-using UnityEngine;
 using System.Collections.Generic;
+using UnityEngine;
+using System.Linq;
 
 [CreateAssetMenu(menuName = "MyGame/Card Data List", fileName = "NewCardDataList")]
 public class CardDataList : ScriptableObject
 {
-    #region Fields
-    public List<CardData> allCards;
-    private Dictionary<int, CardData> cardDataDictionary;
-    #endregion
+    public List<SetGroup> sets;
+    public TrickGroup trickGroup;
+    public SpecialGroup specialGroup;
 
-    #region Methods
-    private void OnEnable()
+    public CardData GetDataByID(int id)
     {
-        // ScriptableObject etkinleştirildiğinde, kart verilerini hızlıca bulmak için sözlük oluştur
-        if (allCards != null)
+        // Normal kartlar
+        if (sets != null)
         {
-            cardDataDictionary = new Dictionary<int, CardData>();
-            foreach (var card in allCards)
+            foreach (var set in sets)
             {
-                if (!cardDataDictionary.ContainsKey(card.cardID))
+                if (set.suits != null)
                 {
-                    cardDataDictionary.Add(card.cardID, card);
+                    foreach (var suit in set.suits)
+                    {
+                        if (suit.ranks != null)
+                        {
+                            foreach (var card in suit.ranks)
+                            {
+                                if (card.cardID == id)
+                                    return card;
+                            }
+                        }
+                    }
                 }
             }
         }
-    }
 
-    // ID'ye göre CardData bulmak için yardımcı fonksiyon
-    public CardData GetDataByID(int id)
-    {
-        // Sözlükte ara, eğer bulunmazsa listede ara
-        if (cardDataDictionary != null && cardDataDictionary.TryGetValue(id, out CardData data))
+        // Trick kartlar
+        if (trickGroup != null && trickGroup.trickRanks != null)
         {
-            return data;
+            foreach (var trickRank in trickGroup.trickRanks)
+            {
+                if (trickRank.trickVariations != null)
+                {
+                    foreach (var card in trickRank.trickVariations)
+                    {
+                        if (card.cardID == id)
+                            return card;
+                    }
+                }
+            }
         }
-        return allCards?.Find(c => c.cardID == id);
+
+        // Special kartlar
+        if (specialGroup != null && specialGroup.specialTypes != null)
+        {
+            foreach (var specialType in specialGroup.specialTypes)
+            {
+                if (specialType.cards != null)
+                {
+                    foreach (var card in specialType.cards)
+                    {
+                        if (card.cardID == id)
+                            return card;
+                    }
+                }
+            }
+        }
+
+        // Kart bulunamadı
+        return null;
     }
-    #endregion
+}
+
+[System.Serializable]
+public class SetGroup
+{
+    public string setName;
+    public List<SuitGroup> suits;
+}
+
+[System.Serializable]
+public class SuitGroup
+{
+    public string suitName;
+    public List<CardData> ranks;
 }
 
 [System.Serializable]
 public class CardData
 {
-    #region Fields
-    public int cardID;            // Örneğin 0..27 As kartlar, 28 = wild vb.
-    public Sprite cardSprite;     // Kartın görseli
-    public string cardName;       // İsteğe bağlı (örneğin "AS-0", "Wild", vb.)
-    #endregion
+    public int cardID;
+    public string cardName;
+    public Sprite cardSprite;
+    public int rank;
+    public bool isTrick;
+    // Yeni alanlar ekleyebilirsiniz, örneğin:
+    // public bool isJoker;
+    // public bool isEmpty;
+}
+
+[System.Serializable]
+public class TrickGroup
+{
+    public string groupName = "Trick";
+    public List<TrickRankGroup> trickRanks;
+}
+
+[System.Serializable]
+public class TrickRankGroup
+{
+    public int rank;
+    public List<CardData> trickVariations;
+}
+
+[System.Serializable]
+public class SpecialGroup
+{
+    public string groupName = "Special";
+    public List<SpecialTypeGroup> specialTypes;
+}
+
+[System.Serializable]
+public class SpecialTypeGroup
+{
+    public string typeName; // "Joker", "Empty", vb.
+    public List<CardData> cards;
 }

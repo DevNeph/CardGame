@@ -27,6 +27,16 @@ public class Card : MonoBehaviour
         boxCollider = GetComponent<BoxCollider2D>();  
         gm = Object.FindFirstObjectByType<GameManager>();
         originalScale = transform.localScale;
+
+        if (spriteRenderer == null)
+        {
+            Debug.LogError($"SpriteRenderer not found on {gameObject.name}");
+        }
+
+        if (boxCollider == null)
+        {
+            Debug.LogError($"BoxCollider2D not found on {gameObject.name}");
+        }
     }
 
     private void OnEnable()
@@ -60,8 +70,10 @@ public class Card : MonoBehaviour
         if (spriteRenderer != null)
         {
             spriteRenderer.sortingOrder = -index;
+            // Sorting Layer'ı ayarlamak için:
+            // spriteRenderer.sortingLayerName = "YourSortingLayerName";
         }
-        
+
         Debug.Log($"Card {cardID} layer index set to {index}, z position: {pos.z}, sorting order: {-index}");
     }
 
@@ -78,6 +90,7 @@ public class Card : MonoBehaviour
 
         spriteRenderer.sprite = sprite;
         spriteRenderer.color = isHidden ? new Color(1, 1, 1, 0f) : Color.white;
+        Debug.Log($"SetupCard: ID={id}, Hidden={hidden}");
     }
 
     public void RevealCard()
@@ -87,6 +100,7 @@ public class Card : MonoBehaviour
         {
             spriteRenderer.color = Color.white;
         }
+        Debug.Log($"Card {cardID} revealed.");
     }
 
     public void PlaceInSlot()
@@ -105,6 +119,7 @@ public class Card : MonoBehaviour
         foreach (Card card in allCards) {
             card.UpdateCardAppearance();
         }
+        Debug.Log($"Card {cardID} placed in slot.");
     }
     #endregion
 
@@ -113,52 +128,43 @@ public class Card : MonoBehaviour
     {
         if (spriteRenderer != null)
             spriteRenderer.color = COVERED_CARD_COLOR;
+        Debug.Log($"Card {cardID} set as behind.");
     }
 
     private void SetAsInFront()
     {
         if (spriteRenderer != null)
             spriteRenderer.color = Color.white;
+        Debug.Log($"Card {cardID} set as in front.");
     }
+
 
     public bool IsCardBehind()
     {
         if (isInSlot) return false;
 
-        Vector2 boxSize = boxCollider.size;
-        Vector2 boxPosition = (Vector2)transform.position + boxCollider.offset;
-        
-        // İlk olarak, fiziksel çakışmaları kontrol et
-        Collider2D[] overlaps = Physics2D.OverlapBoxAll(boxPosition, boxSize, 0f);
-        foreach (Collider2D overlap in overlaps)
+        Vector2 thisPos = (Vector2)transform.position;
+        int currentSortingOrder = spriteRenderer.sortingOrder;
+
+        foreach (Card otherCard in allCards)
         {
-            if (overlap.gameObject == gameObject) continue;
+            if (otherCard == this || otherCard.isInSlot) continue;
+            if (otherCard.spriteRenderer.sortingOrder <= currentSortingOrder) continue;
+
+            Bounds thisBounds = spriteRenderer.sprite.bounds;
+            Bounds otherBounds = otherCard.spriteRenderer.sprite.bounds;
             
-            Card otherCard = overlap.GetComponent<Card>();
-            if (otherCard != null && !otherCard.isInSlot && 
-                otherCard.spriteRenderer.sortingOrder > spriteRenderer.sortingOrder)
+            thisBounds.size *= transform.localScale.x;
+            otherBounds.size *= otherCard.transform.localScale.x;
+            
+            thisBounds.center = thisPos;
+            otherBounds.center = (Vector2)otherCard.transform.position;
+
+            if (thisBounds.Intersects(otherBounds))
             {
                 return true;
             }
         }
-
-        // Statik listedeki diğer kartları incele
-        foreach (Card otherCard in allCards)
-        {
-            if (otherCard == this || otherCard.isInSlot) continue;
-            if (otherCard.spriteRenderer.sortingOrder > spriteRenderer.sortingOrder)
-            {
-                Vector2 otherPos = (Vector2)otherCard.transform.position;
-                float xDiff = Mathf.Abs(boxPosition.x - otherPos.x);
-                float yDiff = Mathf.Abs(boxPosition.y - otherPos.y);
-
-                if (xDiff < boxSize.x && yDiff < boxSize.y)
-                {
-                    return true;
-                }
-            }
-        }
-
         return false;
     }
 
@@ -169,6 +175,7 @@ public class Card : MonoBehaviour
             if (spriteRenderer != null) spriteRenderer.color = Color.white;
             if (boxCollider != null) boxCollider.enabled = false;
             transform.localScale = originalScale;
+            Debug.Log($"Card {cardID} is in slot.");
             return;
         }
 
@@ -177,11 +184,13 @@ public class Card : MonoBehaviour
         {
             SetAsBehind();
             if (boxCollider != null) boxCollider.enabled = false;
+            Debug.Log($"Card {cardID} is set as behind.");
         }
         else
         {
             SetAsInFront();
             if (boxCollider != null) boxCollider.enabled = true;
+            Debug.Log($"Card {cardID} is set as in front.");
         }
 
         transform.localScale = originalScale;
@@ -191,33 +200,29 @@ public class Card : MonoBehaviour
     {
         Vector2 thisPos = (Vector2)transform.position;
         int currentSortingOrder = spriteRenderer.sortingOrder;
-        int topLayer = 0; // En üst layer (sorting order 0)
-        
-        // En üstten şu anki katmana kadar kontrol
-        for (int checkLayer = topLayer; checkLayer > currentSortingOrder; checkLayer--)
+
+        foreach (Card otherCard in allCards)
         {
-            bool hasOverlappingCard = false;
-            foreach (Card otherCard in allCards)
+            if (otherCard == this || otherCard.isInSlot) continue;
+            if (otherCard.spriteRenderer.sortingOrder <= currentSortingOrder) continue;
+
+            // Box Collider yerine sprite bounds kullan
+            Bounds thisBounds = spriteRenderer.sprite.bounds;
+            Bounds otherBounds = otherCard.spriteRenderer.sprite.bounds;
+            
+            // Scale'i hesaba kat
+            thisBounds.size *= transform.localScale.x;
+            otherBounds.size *= otherCard.transform.localScale.x;
+            
+            // Pozisyonları güncelle
+            thisBounds.center = thisPos;
+            otherBounds.center = (Vector2)otherCard.transform.position;
+
+            if (thisBounds.Intersects(otherBounds))
             {
-                if (otherCard == this || otherCard.isInSlot) continue;
-                if (otherCard.spriteRenderer.sortingOrder == checkLayer)
-                {
-                    Vector2 otherPos = (Vector2)otherCard.transform.position;
-                    float xDiff = Mathf.Abs(thisPos.x - otherPos.x);
-                    float yDiff = Mathf.Abs(thisPos.y - otherPos.y);
-                    
-                    if (xDiff < boxCollider.size.x && yDiff < boxCollider.size.y)
-                    {
-                        hasOverlappingCard = true;
-                        break;
-                    }
-                }
-            }
-
-            if (hasOverlappingCard)
                 return false;
+            }
         }
-
         return true;
     }
 
@@ -243,7 +248,7 @@ public class Card : MonoBehaviour
     #region Input Handling
     private void OnMouseDown()
     {
-        if (isInSlot || GameManager.IsPopupActive)
+        if (isInSlot || GameManager.IsPopupActive )
         {
             Debug.Log("Kart slot'ta veya popup aktif.");
             return;

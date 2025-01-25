@@ -17,84 +17,171 @@ MonoBehaviour:
   - layerName: Layer 1
     zIndex: 0
     positions:
-    - posX: -2
-      posY: 3
+    - posX: -1.85
+      posY: 2.95
       isCardHidden: 0
     - posX: 0
-      posY: 3
+      posY: 2.95
       isCardHidden: 0
-    - posX: 2
-      posY: 3
+    - posX: 1.85
+      posY: 2.95
       isCardHidden: 0
-    - posX: -2
-      posY: 1
-      isCardHidden: 0
-    - posX: 0
-      posY: 1
-      isCardHidden: 0
-    - posX: 2
-      posY: 1
-      isCardHidden: 0
-    - posX: -2
-      posY: -1
+    - posX: -1.85
+      posY: 0.65
       isCardHidden: 0
     - posX: 0
-      posY: -1
+      posY: 0.65
       isCardHidden: 0
-    - posX: 2
-      posY: -1
+    - posX: 1.85
+      posY: 0.65
       isCardHidden: 0
-  - layerName: Layer 2
-    zIndex: -1
-    positions:
-    - posX: -2
-      posY: 1
+    - posX: -1.85
+      posY: -1.65
       isCardHidden: 0
     - posX: 0
-      posY: 3
+      posY: -1.65
       isCardHidden: 0
-    - posX: 2
-      posY: 1
-      isCardHidden: 0
-    - posX: 0
-      posY: -1
+    - posX: 1.85
+      posY: -1.65
       isCardHidden: 0
   - layerName: Layer 3
     zIndex: -2
     positions:
-    - posX: -1.5
-      posY: 3
+    - posX: -2.3
+      posY: 3.5
       isCardHidden: 0
-    - posX: -0.5
-      posY: 3
+    - posX: -0.46
+      posY: 3.5
       isCardHidden: 0
-    - posX: 0.5
-      posY: 3
+    - posX: -1.38
+      posY: 3.5
       isCardHidden: 0
-    - posX: 1.5
-      posY: 3
+    - posX: -2.3
+      posY: 0.125
       isCardHidden: 0
-    - posX: -1.5
-      posY: 1
+    - posX: -1.38
+      posY: 0.125
       isCardHidden: 0
-    - posX: -0.5
-      posY: 1
+    - posX: -2.3
+      posY: 1.25
       isCardHidden: 0
-    - posX: 0.5
-      posY: 1
+    - posX: -1.38
+      posY: 1.25
       isCardHidden: 0
-    - posX: 1.5
-      posY: 1
+    - posX: -2.3
+      posY: 2.375
       isCardHidden: 0
-    - posX: -1.5
+    - posX: -1.38
+      posY: 2.375
+      isCardHidden: 0
+    - posX: -0.46
+      posY: 2.375
+      isCardHidden: 0
+    - posX: 0.46
+      posY: 3.5
+      isCardHidden: 0
+    - posX: 0.46
+      posY: 2.375
+      isCardHidden: 0
+    - posX: 0.46
+      posY: 1.25
+      isCardHidden: 0
+    - posX: 0.46
+      posY: 0.125
+      isCardHidden: 0
+    - posX: -0.46
+      posY: 1.25
+      isCardHidden: 0
+    - posX: -0.46
+      posY: 0.125
+      isCardHidden: 0
+    - posX: 1.38
+      posY: 0.125
+      isCardHidden: 0
+    - posX: 1.38
+      posY: 1.25
+      isCardHidden: 0
+    - posX: 1.38
+      posY: 2.375
+      isCardHidden: 0
+    - posX: 1.38
+      posY: 3.5
+      isCardHidden: 0
+    - posX: 2.3
+      posY: 3.5
+      isCardHidden: 0
+    - posX: 2.3
+      posY: 2.375
+      isCardHidden: 0
+    - posX: 2.3
+      posY: 1.25
+      isCardHidden: 0
+    - posX: 2.3
+      posY: 0.125
+      isCardHidden: 0
+    - posX: 2.3
       posY: -1
       isCardHidden: 0
-    - posX: -0.5
+    - posX: 1.38
       posY: -1
       isCardHidden: 0
-    - posX: 0.5
+    - posX: 0.46
       posY: -1
       isCardHidden: 0
-    - posX: 1.5
+    - posX: -0.46
       posY: -1
+      isCardHidden: 0
+    - posX: -1.38
+      posY: -1
+      isCardHidden: 0
+    - posX: -2.3
+      posY: -1
+      isCardHidden: 0
+    - posX: -2.3
+      posY: -2.125
+      isCardHidden: 0
+    - posX: -1.38
+      posY: -2.125
+      isCardHidden: 0
+    - posX: -0.46
+      posY: -2.125
+      isCardHidden: 0
+    - posX: 0.46
+      posY: -2.125
+      isCardHidden: 0
+    - posX: 1.38
+      posY: -2.125
+      isCardHidden: 0
+    - posX: 2.3
+      posY: -2.125
+      isCardHidden: 0
+  - layerName: Layer 3
+    zIndex: -0.2
+    positions:
+    - posX: -1.85
+      posY: 2.95
+      isCardHidden: 0
+    - posX: 0
+      posY: 2.95
+      isCardHidden: 0
+    - posX: 1.85
+      posY: 2.95
+      isCardHidden: 0
+    - posX: -1.85
+      posY: 0.65
+      isCardHidden: 0
+    - posX: 0
+      posY: 0.65
+      isCardHidden: 0
+    - posX: 1.85
+      posY: 0.65
+      isCardHidden: 0
+    - posX: -1.85
+      posY: -1.65
+      isCardHidden: 0
+    - posX: 0
+      posY: -1.65
+      isCardHidden: 0
+    - posX: 1.85
+      posY: -1.65
       isCardHidden: 0

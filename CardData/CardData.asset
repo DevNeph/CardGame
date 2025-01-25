@@ -1,0 +1,985 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 37a93f1c29121b04a899f51e1a4788f7, type: 3}
+  m_Name: CardData
+  m_EditorClassIdentifier: 
+  sets:
+  - setName: Border
+    suits:
+    - suitName: Triangle Up Red
+      ranks:
+      - cardID: 1001
+        cardName: Border_Triangle Up_Red_R1
+        cardSprite: {fileID: 5620355365188860911, guid: cc00571c1cd8e63489cb9189ddedab6c, type: 3}
+        rank: 1
+        isTrick: 0
+      - cardID: 1002
+        cardName: Border_Triangle Up_Red_R2
+        cardSprite: {fileID: -2986480522433596089, guid: b2c969fa751b667429c48dee0ddbdfee, type: 3}
+        rank: 2
+        isTrick: 0
+      - cardID: 1003
+        cardName: Border_Triangle Up_Red_R3
+        cardSprite: {fileID: -77511989929478714, guid: a36ebd4c159a91e4795714b41ca8fcf6, type: 3}
+        rank: 3
+        isTrick: 0
+      - cardID: 1004
+        cardName: Border_Triangle Up_Red_R4
+        cardSprite: {fileID: 4268079810484271982, guid: b910e5a530736204d9f122509acff8e1, type: 3}
+        rank: 4
+        isTrick: 0
+      - cardID: 1005
+        cardName: Border_Triangle Up_Red_R5
+        cardSprite: {fileID: -1409027860110786291, guid: 87ecf655189357c48b5a2d5f3ddfe238, type: 3}
+        rank: 5
+        isTrick: 0
+      - cardID: 1006
+        cardName: Border_Triangle Up_Red_R6
+        cardSprite: {fileID: -1122319918220441354, guid: a42c9dbdcd64ed646a92758d59aedf08, type: 3}
+        rank: 6
+        isTrick: 0
+    - suitName: Triangle Up Black
+      ranks:
+      - cardID: 1011
+        cardName: Border_Triangle Up_Black_R1
+        cardSprite: {fileID: -2807131512404312722, guid: 096a5ef4b986fd24b800c7239cb9d0f3, type: 3}
+        rank: 1
+        isTrick: 0
+      - cardID: 1012
+        cardName: Border_Triangle Up_Black_R2
+        cardSprite: {fileID: 8413551591786605246, guid: 20d34f185967df94289717f0cb80e50b, type: 3}
+        rank: 2
+        isTrick: 0
+      - cardID: 1013
+        cardName: Border_Triangle Up_Black_R3
+        cardSprite: {fileID: -3114185277167916910, guid: 79823c3b545ae9f43a638bc60d55c54c, type: 3}
+        rank: 3
+        isTrick: 0
+      - cardID: 1014
+        cardName: Border_Triangle Up_Black_R4
+        cardSprite: {fileID: -9165490328493374053, guid: 405509b4165592a45bbe1b6577f42043, type: 3}
+        rank: 4
+        isTrick: 0
+      - cardID: 1015
+        cardName: Border_Triangle Up_Black_R5
+        cardSprite: {fileID: -5942521204762344356, guid: a54868aab1d36dd4bb410a47871b0ef5, type: 3}
+        rank: 5
+        isTrick: 0
+      - cardID: 1016
+        cardName: Border_Triangle Up_Black_R6
+        cardSprite: {fileID: 7413142838379451068, guid: 1f601ea9ab845154b8ced32f39c7ffe2, type: 3}
+        rank: 6
+        isTrick: 0
+    - suitName: Triangle Down Red
+      ranks:
+      - cardID: 1021
+        cardName: Border_Triangle Down_Red_R1
+        cardSprite: {fileID: 8711715508695372161, guid: c30b6311f4639854a91ae56c287f6f65, type: 3}
+        rank: 1
+        isTrick: 0
+      - cardID: 1022
+        cardName: Border_Triangle Down_Red_R2
+        cardSprite: {fileID: -8541373537524100825, guid: fdd3a5e141bbda141affe651cf607301, type: 3}
+        rank: 2
+        isTrick: 0
+      - cardID: 1023
+        cardName: Border_Triangle Down_Red_R3
+        cardSprite: {fileID: -3759861607344431451, guid: e5eb6fbe0bb67f44994e6accc6d16725, type: 3}
+        rank: 3
+        isTrick: 0
+      - cardID: 1024
+        cardName: Border_Triangle Down_Red_R4
+        cardSprite: {fileID: -4054111720429725101, guid: cac8c83b482b95b469c9704422882e9a, type: 3}
+        rank: 4
+        isTrick: 0
+      - cardID: 1025
+        cardName: Border_Triangle Down_Red_R5
+        cardSprite: {fileID: -5348943868900348393, guid: 1aa63557b0461f6428752f6bae0012d9, type: 3}
+        rank: 5
+        isTrick: 0
+      - cardID: 1026
+        cardName: Border_Triangle Down_Red_R6
+        cardSprite: {fileID: -419534395205520973, guid: e05be6113059b384a9798410618b63c9, type: 3}
+        rank: 6
+        isTrick: 0
+    - suitName: Triangle Down Black
+      ranks:
+      - cardID: 1031
+        cardName: Border_Triangle Down_Black_R1
+        cardSprite: {fileID: 5428185831676842923, guid: 3054a8be733aa644093524f98e4e13e8, type: 3}
+        rank: 1
+        isTrick: 0
+      - cardID: 1032
+        cardName: Border_Triangle Down_Black_R2
+        cardSprite: {fileID: 3921577502700049670, guid: 18fbb9e136fc1544c8a030dbc34dba63, type: 3}
+        rank: 2
+        isTrick: 0
+      - cardID: 1033
+        cardName: Border_Triangle Down_Black_R3
+        cardSprite: {fileID: 8811862047458514841, guid: 9573a59017ac2a4488586577f0127232, type: 3}
+        rank: 3
+        isTrick: 0
+      - cardID: 1034
+        cardName: Border_Triangle Down_Black_R4
+        cardSprite: {fileID: -3440825577120207488, guid: 58a4e5fb19cbb2f4091ed4ff7193df15, type: 3}
+        rank: 4
+        isTrick: 0
+      - cardID: 1035
+        cardName: Border_Triangle Down_Black_R5
+        cardSprite: {fileID: 7281465142438293245, guid: 4956d002866d9e040bfc1caeafc8faf9, type: 3}
+        rank: 5
+        isTrick: 0
+      - cardID: 1036
+        cardName: Border_Triangle Down_Black_R6
+        cardSprite: {fileID: 5531482860260604825, guid: 0739ba7e6e0243d4097c1a8d7387cb3f, type: 3}
+        rank: 6
+        isTrick: 0
+    - suitName: Square Red
+      ranks:
+      - cardID: 1041
+        cardName: Border_Square_Red_R1
+        cardSprite: {fileID: -9055380324977030588, guid: 1457e331cd8ba7a47a6a0cd8ec63d059, type: 3}
+        rank: 1
+        isTrick: 0
+      - cardID: 1042
+        cardName: Border_Square_Red_R2
+        cardSprite: {fileID: 1885497995567873595, guid: e043154322c6bcf4c87bdbf0a32eecd2, type: 3}
+        rank: 2
+        isTrick: 0
+      - cardID: 1043
+        cardName: Border_Square_Red_R3
+        cardSprite: {fileID: -2719905462970815740, guid: 7203c519926a16941a743f5548a0ef3f, type: 3}
+        rank: 3
+        isTrick: 0
+      - cardID: 1044
+        cardName: Border_Square_Red_R4
+        cardSprite: {fileID: 8853573284640580720, guid: 95a2f60c7edb4dd47a09477f0ec6261d, type: 3}
+        rank: 4
+        isTrick: 0
+      - cardID: 1045
+        cardName: Border_Square_Red_R5
+        cardSprite: {fileID: 3451640845361844757, guid: 4fc8ff5a923a46e4bbb452ece13a01db, type: 3}
+        rank: 5
+        isTrick: 0
+      - cardID: 1046
+        cardName: Border_Square_Red_R6
+        cardSprite: {fileID: -8535514757185932846, guid: 8a12c1000e3fdef409773281d156139f, type: 3}
+        rank: 6
+        isTrick: 0
+    - suitName: Square Black
+      ranks:
+      - cardID: 1051
+        cardName: Border_Square_Black_R1
+        cardSprite: {fileID: -658471100350399142, guid: cf35758a5ad584e438d0ad3e74195162, type: 3}
+        rank: 1
+        isTrick: 0
+      - cardID: 1052
+        cardName: Border_Square_Black_R2
+        cardSprite: {fileID: 6528339877313051009, guid: f820fb86c8b21bd4c8da7675e2498c72, type: 3}
+        rank: 2
+        isTrick: 0
+      - cardID: 1053
+        cardName: Border_Square_Black_R3
+        cardSprite: {fileID: 8402730686331172550, guid: 715fb3b46e9a0d44d966d46662a85f66, type: 3}
+        rank: 3
+        isTrick: 0
+      - cardID: 1054
+        cardName: Border_Square_Black_R4
+        cardSprite: {fileID: 3738904829709905010, guid: bb97539e325f5184a8ce716f4205a3b1, type: 3}
+        rank: 4
+        isTrick: 0
+      - cardID: 1055
+        cardName: Border_Square_Black_R5
+        cardSprite: {fileID: 3941106344552697207, guid: 8d35eacf25968e14ea024886cd39258a, type: 3}
+        rank: 5
+        isTrick: 0
+      - cardID: 1056
+        cardName: Border_Square_Black_R6
+        cardSprite: {fileID: 4086352348532764894, guid: 144404941cce7d146804fb97079af531, type: 3}
+        rank: 6
+        isTrick: 0
+    - suitName: Dot Red
+      ranks:
+      - cardID: 1061
+        cardName: Border_Dot_Red_R1
+        cardSprite: {fileID: -6087355127968787457, guid: 335bd6140342e8e4eb39a297c5ecdec8, type: 3}
+        rank: 1
+        isTrick: 0
+      - cardID: 1062
+        cardName: Border_Dot_Red_R2
+        cardSprite: {fileID: 5411184518468711869, guid: 1e23a058114f1cb479fe9b6e047843f9, type: 3}
+        rank: 2
+        isTrick: 0
+      - cardID: 1063
+        cardName: Border_Dot_Red_R3
+        cardSprite: {fileID: -7332341630848021255, guid: 3ff1c6de6e207af46b4daec3d99afaaa, type: 3}
+        rank: 3
+        isTrick: 0
+      - cardID: 1064
+        cardName: Border_Dot_Red_R4
+        cardSprite: {fileID: 7202202714659528257, guid: 4587dc7fc6da4e04189ac60a736649ff, type: 3}
+        rank: 4
+        isTrick: 0
+      - cardID: 1065
+        cardName: Border_Dot_Red_R5
+        cardSprite: {fileID: -7785044605787573501, guid: 2b3c102a92b2f8b42b21888e298c30c3, type: 3}
+        rank: 5
+        isTrick: 0
+      - cardID: 1066
+        cardName: Border_Dot_Red_R6
+        cardSprite: {fileID: 6801281217053665284, guid: 83da4ef4a11f08a46af2c95798e337ba, type: 3}
+        rank: 6
+        isTrick: 0
+    - suitName: Dot Black
+      ranks:
+      - cardID: 1071
+        cardName: Border_Dot_Black_R1
+        cardSprite: {fileID: 5440390084351408723, guid: 2ecb5a8026509ba4890fe1cc44b0ab20, type: 3}
+        rank: 1
+        isTrick: 0
+      - cardID: 1072
+        cardName: Border_Dot_Black_R2
+        cardSprite: {fileID: -1931322024798214012, guid: 016ca1e5648c36149900f2574be12164, type: 3}
+        rank: 2
+        isTrick: 0
+      - cardID: 1073
+        cardName: Border_Dot_Black_R3
+        cardSprite: {fileID: -2335287620393318938, guid: d25785d4c96ed5448bd052c8e41ba3cb, type: 3}
+        rank: 3
+        isTrick: 0
+      - cardID: 1074
+        cardName: Border_Dot_Black_R4
+        cardSprite: {fileID: 2423116811184203588, guid: 92fceb3ca9206474aa5f223e9e94ba6f, type: 3}
+        rank: 4
+        isTrick: 0
+      - cardID: 1075
+        cardName: Border_Dot_Black_R5
+        cardSprite: {fileID: 3698358706469425616, guid: 8b10295a0ba532d4db2d0a4b07bdf55f, type: 3}
+        rank: 5
+        isTrick: 0
+      - cardID: 1076
+        cardName: Border_Dot_Black_R6
+        cardSprite: {fileID: -6287497916880652701, guid: 4b3b4b787821bfa4eb2436b1a02423b4, type: 3}
+        rank: 6
+        isTrick: 0
+    - suitName: Tridot Red
+      ranks:
+      - cardID: 1081
+        cardName: Border_Tridot_Red_R1
+        cardSprite: {fileID: 8086099324953859911, guid: 9117548daa49fab4596e6cc18decffb6, type: 3}
+        rank: 1
+        isTrick: 0
+      - cardID: 1082
+        cardName: Border_Tridot_Red_R2
+        cardSprite: {fileID: 8070007382338665223, guid: 4ffe6e8ccb7fec741bb2aadec55e1245, type: 3}
+        rank: 2
+        isTrick: 0
+      - cardID: 1083
+        cardName: Border_Tridot_Red_R3
+        cardSprite: {fileID: 1446756491990537357, guid: 9f7a703d0e8475d4088d1c0b54ede8f6, type: 3}
+        rank: 3
+        isTrick: 0
+      - cardID: 1084
+        cardName: Border_Tridot_Red_R4
+        cardSprite: {fileID: 7778406736551163200, guid: a3e492bfb1df9374cb82f9cb890fb212, type: 3}
+        rank: 4
+        isTrick: 0
+      - cardID: 1085
+        cardName: Border_Tridot_Red_R5
+        cardSprite: {fileID: -513546068271041449, guid: bf8ac1f22225d36499a1a06181f27639, type: 3}
+        rank: 5
+        isTrick: 0
+      - cardID: 1086
+        cardName: Border_Tridot_Red_R6
+        cardSprite: {fileID: 2638754106976316883, guid: 2f75d8b4a22400a4ab5f8affa7c20f67, type: 3}
+        rank: 6
+        isTrick: 0
+    - suitName: Tridot Black
+      ranks:
+      - cardID: 1091
+        cardName: Border_Tridot_Black_R1
+        cardSprite: {fileID: -6570845352014502173, guid: f437025b94758f047930bdda7d46f05b, type: 3}
+        rank: 1
+        isTrick: 0
+      - cardID: 1092
+        cardName: Border_Tridot_Black_R2
+        cardSprite: {fileID: -7246329631944682367, guid: 4a666f53ee0dcc44785c0e06d1e0706b, type: 3}
+        rank: 2
+        isTrick: 0
+      - cardID: 1093
+        cardName: Border_Tridot_Black_R3
+        cardSprite: {fileID: 7266929608507971634, guid: d13ac63edc6a463489fae831bdd923a0, type: 3}
+        rank: 3
+        isTrick: 0
+      - cardID: 1094
+        cardName: Border_Tridot_Black_R4
+        cardSprite: {fileID: 5334404073691303345, guid: 6acef69f9d383634c9bd0cc1b74ef95d, type: 3}
+        rank: 4
+        isTrick: 0
+      - cardID: 1095
+        cardName: Border_Tridot_Black_R5
+        cardSprite: {fileID: 6294809450299104574, guid: 26af81f495bd4ae418a6fe7d80e389b7, type: 3}
+        rank: 5
+        isTrick: 0
+      - cardID: 1096
+        cardName: Border_Tridot_Black_R6
+        cardSprite: {fileID: 5545420083007071474, guid: 72b0b6beaa4eec148a0022bd1502b799, type: 3}
+        rank: 6
+        isTrick: 0
+  - setName: Fill
+    suits:
+    - suitName: Triangle Up Red
+      ranks:
+      - cardID: 2001
+        cardName: Fill_Triangle Up_Red_R1
+        cardSprite: {fileID: -8596520376513825570, guid: 3248cc3481ec3d348889719730be5d47, type: 3}
+        rank: 1
+        isTrick: 0
+      - cardID: 2002
+        cardName: Fill_Triangle Up_Red_R2
+        cardSprite: {fileID: -1523477500510264325, guid: a876f37ddeb143f479e8ccf26966911f, type: 3}
+        rank: 2
+        isTrick: 0
+      - cardID: 2003
+        cardName: Fill_Triangle Up_Red_R3
+        cardSprite: {fileID: -3472435481649918759, guid: e86ece4b20822f04babaa3be1c8a3615, type: 3}
+        rank: 3
+        isTrick: 0
+      - cardID: 2004
+        cardName: Fill_Triangle Up_Red_R4
+        cardSprite: {fileID: 5626521724434569836, guid: 199e353f2c7629a4884ba9527f9d593e, type: 3}
+        rank: 4
+        isTrick: 0
+      - cardID: 2005
+        cardName: Fill_Triangle Up_Red_R5
+        cardSprite: {fileID: 4634250376757391974, guid: a3f5f0606ef265f48b73b1f53a64968e, type: 3}
+        rank: 5
+        isTrick: 0
+      - cardID: 2006
+        cardName: Fill_Triangle Up_Red_R6
+        cardSprite: {fileID: -5690314236404921571, guid: 972e22f57f8b3794dad238b80c3e561a, type: 3}
+        rank: 6
+        isTrick: 0
+    - suitName: Triangle Up Black
+      ranks:
+      - cardID: 2011
+        cardName: Fill_Triangle Up_Black_R1
+        cardSprite: {fileID: -1978242454149541144, guid: 8ebec2feb38f86647a417e3a6154e891, type: 3}
+        rank: 1
+        isTrick: 0
+      - cardID: 2012
+        cardName: Fill_Triangle Up_Black_R2
+        cardSprite: {fileID: -1684194969647609972, guid: d6df77686736edb429cfafe6a4741344, type: 3}
+        rank: 2
+        isTrick: 0
+      - cardID: 2013
+        cardName: Fill_Triangle Up_Black_R3
+        cardSprite: {fileID: 3131638380913243320, guid: 751b83ab087422c459130cd1b4adfd58, type: 3}
+        rank: 3
+        isTrick: 0
+      - cardID: 2014
+        cardName: Fill_Triangle Up_Black_R4
+        cardSprite: {fileID: 1111367655706333413, guid: d3edd4b36a7449f409948563b1145c0e, type: 3}
+        rank: 4
+        isTrick: 0
+      - cardID: 2015
+        cardName: Fill_Triangle Up_Black_R5
+        cardSprite: {fileID: 8917059850800717930, guid: 034f37ec50861c140b5b2b544989a57a, type: 3}
+        rank: 5
+        isTrick: 0
+      - cardID: 2016
+        cardName: Fill_Triangle Up_Black_R6
+        cardSprite: {fileID: -4326153557586182778, guid: 3514a3dcbcdad6d44978405e93b41552, type: 3}
+        rank: 6
+        isTrick: 0
+    - suitName: Triangle Down Red
+      ranks:
+      - cardID: 2021
+        cardName: Fill_Triangle Down_Red_R1
+        cardSprite: {fileID: 8212188406490904557, guid: bf092ea4f8924b8409d4d2d831784056, type: 3}
+        rank: 1
+        isTrick: 0
+      - cardID: 2022
+        cardName: Fill_Triangle Down_Red_R2
+        cardSprite: {fileID: 2895106087631201512, guid: ae39729af20854448a7b52da922d477f, type: 3}
+        rank: 2
+        isTrick: 0
+      - cardID: 2023
+        cardName: Fill_Triangle Down_Red_R3
+        cardSprite: {fileID: 6027722340941795200, guid: fdaeadb44c665144fa88484692170073, type: 3}
+        rank: 3
+        isTrick: 0
+      - cardID: 2024
+        cardName: Fill_Triangle Down_Red_R4
+        cardSprite: {fileID: -189409281334294075, guid: a29b0cda146b1eb4e9e7d3c8512c7e83, type: 3}
+        rank: 4
+        isTrick: 0
+      - cardID: 2025
+        cardName: Fill_Triangle Down_Red_R5
+        cardSprite: {fileID: 3311437840034631480, guid: 58ab3fc59353a8e4e9675b9f224063d0, type: 3}
+        rank: 5
+        isTrick: 0
+      - cardID: 2026
+        cardName: Fill_Triangle Down_Red_R6
+        cardSprite: {fileID: -8737530132187642450, guid: 432f1b8ddf3f8924abf491157ca642e1, type: 3}
+        rank: 6
+        isTrick: 0
+    - suitName: Triangle Down Black
+      ranks:
+      - cardID: 2031
+        cardName: Fill_Triangle Down_Black_R1
+        cardSprite: {fileID: 1270590470084172963, guid: 401bff44cfa58424fb6bfefa58434a33, type: 3}
+        rank: 1
+        isTrick: 0
+      - cardID: 2032
+        cardName: Fill_Triangle Down_Black_R2
+        cardSprite: {fileID: -659073827720686550, guid: 7e80c9d903a43c64aa70a6cd18367ba9, type: 3}
+        rank: 2
+        isTrick: 0
+      - cardID: 2033
+        cardName: Fill_Triangle Down_Black_R3
+        cardSprite: {fileID: 3415630875141793063, guid: b90f3667d2dfd1844832ece2a49788f0, type: 3}
+        rank: 3
+        isTrick: 0
+      - cardID: 2034
+        cardName: Fill_Triangle Down_Black_R4
+        cardSprite: {fileID: -4878586874267744003, guid: 5af0a376b9ba71c499394c727be7ddbe, type: 3}
+        rank: 4
+        isTrick: 0
+      - cardID: 2035
+        cardName: Fill_Triangle Down_Black_R5
+        cardSprite: {fileID: -6816346277446199075, guid: e8242980a8fdc8e40bf733678e1d873c, type: 3}
+        rank: 5
+        isTrick: 0
+      - cardID: 2036
+        cardName: Fill_Triangle Down_Black_R6
+        cardSprite: {fileID: -8993813562447421137, guid: 2c7b14208462e674dab255d9fab1bb9b, type: 3}
+        rank: 6
+        isTrick: 0
+    - suitName: Square Red
+      ranks:
+      - cardID: 2041
+        cardName: Fill_Square_Red_R1
+        cardSprite: {fileID: 8624360230803081537, guid: c0f1612e1031e234ea1eddf3fafbd76e, type: 3}
+        rank: 1
+        isTrick: 0
+      - cardID: 2042
+        cardName: Fill_Square_Red_R2
+        cardSprite: {fileID: -6982450124260179580, guid: 4d5eb8fc3d153fe46a6a3bac351270e6, type: 3}
+        rank: 2
+        isTrick: 0
+      - cardID: 2043
+        cardName: Fill_Square_Red_R3
+        cardSprite: {fileID: 2694472651715763187, guid: 6879c78cc13b9374bbe8efab12cf9061, type: 3}
+        rank: 3
+        isTrick: 0
+      - cardID: 2044
+        cardName: Fill_Square_Red_R4
+        cardSprite: {fileID: -2982563549856686618, guid: 4a48212f500bada468fce8a21d67ebe6, type: 3}
+        rank: 4
+        isTrick: 0
+      - cardID: 2045
+        cardName: Fill_Square_Red_R5
+        cardSprite: {fileID: 4800342949954599718, guid: cce027f014b7665459deb7f60a0038ca, type: 3}
+        rank: 5
+        isTrick: 0
+      - cardID: 2046
+        cardName: Fill_Square_Red_R6
+        cardSprite: {fileID: 6468771455362514863, guid: 8c0fbf2c9eccbbb4f9d53818435bd4c7, type: 3}
+        rank: 6
+        isTrick: 0
+    - suitName: Square Black
+      ranks:
+      - cardID: 2051
+        cardName: Fill_Square_Black_R1
+        cardSprite: {fileID: -8218150759360344090, guid: df9a3852a9c8b4c47973759c1cfdf790, type: 3}
+        rank: 1
+        isTrick: 0
+      - cardID: 2052
+        cardName: Fill_Square_Black_R2
+        cardSprite: {fileID: -8106959968403898131, guid: 3fef6fb707304e44ca5e9fcaf5f41a3f, type: 3}
+        rank: 2
+        isTrick: 0
+      - cardID: 2053
+        cardName: Fill_Square_Black_R3
+        cardSprite: {fileID: 8566508140199576648, guid: a138c67f5b1258a4f97cf753fbd41897, type: 3}
+        rank: 3
+        isTrick: 0
+      - cardID: 2054
+        cardName: Fill_Square_Black_R4
+        cardSprite: {fileID: -2257648703169229351, guid: fcec9c542a6ae224594856d67a09fdf9, type: 3}
+        rank: 4
+        isTrick: 0
+      - cardID: 2055
+        cardName: Fill_Square_Black_R5
+        cardSprite: {fileID: -1786087465273222131, guid: 713ceb343a976464d8a0443a9a3edea9, type: 3}
+        rank: 5
+        isTrick: 0
+      - cardID: 2056
+        cardName: Fill_Square_Black_R6
+        cardSprite: {fileID: 5353773310484754498, guid: 246017c48fd62bc4bb11d6b7f296a6ed, type: 3}
+        rank: 6
+        isTrick: 0
+    - suitName: Dot Red
+      ranks:
+      - cardID: 2061
+        cardName: Fill_Dot_Red_R1
+        cardSprite: {fileID: -645449588540653944, guid: 68b8951dad31d0b4cba6e1dd8712fe36, type: 3}
+        rank: 1
+        isTrick: 0
+      - cardID: 2062
+        cardName: Fill_Dot_Red_R2
+        cardSprite: {fileID: -4018747925879128072, guid: eb4fd3e256ed56c45a11b1f8c2eb3e12, type: 3}
+        rank: 2
+        isTrick: 0
+      - cardID: 2063
+        cardName: Fill_Dot_Red_R3
+        cardSprite: {fileID: 369170043909106265, guid: fac5b3c7c65efd741b8ee21558369198, type: 3}
+        rank: 3
+        isTrick: 0
+      - cardID: 2064
+        cardName: Fill_Dot_Red_R4
+        cardSprite: {fileID: 5843479862873981245, guid: 4d91c2d9970602d44ac63f40838e3931, type: 3}
+        rank: 4
+        isTrick: 0
+      - cardID: 2065
+        cardName: Fill_Dot_Red_R5
+        cardSprite: {fileID: 5518407710010379144, guid: 93303aa0f5c631144af5f481a5d6f887, type: 3}
+        rank: 5
+        isTrick: 0
+      - cardID: 2066
+        cardName: Fill_Dot_Red_R6
+        cardSprite: {fileID: 6344686418644628197, guid: fc52b2718de2bab4b86ab51e4edcaaa2, type: 3}
+        rank: 6
+        isTrick: 0
+    - suitName: Dot Black
+      ranks:
+      - cardID: 2071
+        cardName: Fill_Dot_Black_R1
+        cardSprite: {fileID: 336749835282956655, guid: af9517968bfecf04d8da2a3d351a6df5, type: 3}
+        rank: 1
+        isTrick: 0
+      - cardID: 2072
+        cardName: Fill_Dot_Black_R2
+        cardSprite: {fileID: 7322992458464496312, guid: bec0d56626a0b7744a3597b3249ab7da, type: 3}
+        rank: 2
+        isTrick: 0
+      - cardID: 2073
+        cardName: Fill_Dot_Black_R3
+        cardSprite: {fileID: -6763470361455455759, guid: b1288bfe35dcee94fb25c57a1fbd989d, type: 3}
+        rank: 3
+        isTrick: 0
+      - cardID: 2074
+        cardName: Fill_Dot_Black_R4
+        cardSprite: {fileID: 7127430839534796014, guid: e71140198cfbabc449132d0e951732fc, type: 3}
+        rank: 4
+        isTrick: 0
+      - cardID: 2075
+        cardName: Fill_Dot_Black_R5
+        cardSprite: {fileID: 8533392565461373788, guid: a2d81844fbc26f443adc38662469b2c4, type: 3}
+        rank: 5
+        isTrick: 0
+      - cardID: 2076
+        cardName: Fill_Dot_Black_R6
+        cardSprite: {fileID: -6884516351645503101, guid: 565c37b60c76c9441bcd283a1f7ded2f, type: 3}
+        rank: 6
+        isTrick: 0
+    - suitName: Tridot Red
+      ranks:
+      - cardID: 2081
+        cardName: Fill_Tridot_Red_R1
+        cardSprite: {fileID: 6657124277733316911, guid: b609d2b1079351847a18405d9d50614b, type: 3}
+        rank: 1
+        isTrick: 0
+      - cardID: 2082
+        cardName: Fill_Tridot_Red_R2
+        cardSprite: {fileID: 1942391750989292589, guid: 55083535f95f8b94d9ddd9cfd6f69211, type: 3}
+        rank: 2
+        isTrick: 0
+      - cardID: 2083
+        cardName: Fill_Tridot_Red_R3
+        cardSprite: {fileID: -251935270709652221, guid: f2f4582e728ccaf44b1ae7257bc4ab37, type: 3}
+        rank: 3
+        isTrick: 0
+      - cardID: 2084
+        cardName: Fill_Tridot_Red_R4
+        cardSprite: {fileID: -4073573875138863757, guid: 36eda7010bbe2b8429cc1c938b28f5e4, type: 3}
+        rank: 4
+        isTrick: 0
+      - cardID: 2085
+        cardName: Fill_Tridot_Red_R5
+        cardSprite: {fileID: 6615107716530022528, guid: 7a519116ae4e847498e52dfc0445da4d, type: 3}
+        rank: 5
+        isTrick: 0
+      - cardID: 2086
+        cardName: Fill_Tridot_Red_R6
+        cardSprite: {fileID: 2026191217551833999, guid: 71c7546e2f8e6cc4e8368e562c651014, type: 3}
+        rank: 6
+        isTrick: 0
+    - suitName: Tridot Black
+      ranks:
+      - cardID: 2091
+        cardName: Fill_Tridot_Black_R1
+        cardSprite: {fileID: -1364125850608099395, guid: 2db6a98963eb24d4fa75fd450abf3a39, type: 3}
+        rank: 1
+        isTrick: 0
+      - cardID: 2092
+        cardName: Fill_Tridot_Black_R2
+        cardSprite: {fileID: -2853381455226170066, guid: 4230ea93051b077429338d79ebeec7c8, type: 3}
+        rank: 2
+        isTrick: 0
+      - cardID: 2093
+        cardName: Fill_Tridot_Black_R3
+        cardSprite: {fileID: 7866450322524491757, guid: 95ffa5ed2a4c90e449020f9e51c91988, type: 3}
+        rank: 3
+        isTrick: 0
+      - cardID: 2094
+        cardName: Fill_Tridot_Black_R4
+        cardSprite: {fileID: 1136295493814802034, guid: e1fcaf7beefa660439d5c9f970425c76, type: 3}
+        rank: 4
+        isTrick: 0
+      - cardID: 2095
+        cardName: Fill_Tridot_Black_R5
+        cardSprite: {fileID: -4945221262545107322, guid: 150f6e1aaa0b26a4faca78ea1590de72, type: 3}
+        rank: 5
+        isTrick: 0
+      - cardID: 2096
+        cardName: Fill_Tridot_Black_R6
+        cardSprite: {fileID: -5708148049675101431, guid: 76870219280609e4e87490f3a39ba445, type: 3}
+        rank: 6
+        isTrick: 0
+  trickGroup:
+    groupName: Trick
+    trickRanks:
+    - rank: 3
+      trickVariations:
+      - cardID: 3003
+        cardName: BorderTrick3TriangleUpRed
+        cardSprite: {fileID: 7690061793599786724, guid: 7d68dd0fb49ebe048af2214deff8adb5, type: 3}
+        rank: 3
+        isTrick: 1
+      - cardID: 3013
+        cardName: BorderTrick3TriangleUpBlack
+        cardSprite: {fileID: -6032550259036952847, guid: d957473bd64d62d40829f57c81c8dd5a, type: 3}
+        rank: 3
+        isTrick: 1
+      - cardID: 3023
+        cardName: BorderTrick3TriangleDownRed
+        cardSprite: {fileID: -6048200436775329053, guid: cb010ca196e265f47ac498172847a6da, type: 3}
+        rank: 3
+        isTrick: 1
+      - cardID: 3033
+        cardName: BorderTrick3TriangleDownBlack
+        cardSprite: {fileID: -7504467240466576875, guid: 8f5e679be04ae4f42a453abe3df88938, type: 3}
+        rank: 3
+        isTrick: 1
+      - cardID: 3043
+        cardName: BorderTrick3SquareRed
+        cardSprite: {fileID: -4305369830917977085, guid: 186a772773b03d44588cc459d762421b, type: 3}
+        rank: 3
+        isTrick: 1
+      - cardID: 3053
+        cardName: BorderTrick3SquareBlack
+        cardSprite: {fileID: -9150797215453958775, guid: 9e96abbb43077fb458769cbf944b1421, type: 3}
+        rank: 3
+        isTrick: 1
+      - cardID: 3063
+        cardName: BorderTrick3DotRed
+        cardSprite: {fileID: -1889758975528310034, guid: c9e1f25f68f69e544bda95ac9066aabc, type: 3}
+        rank: 3
+        isTrick: 1
+      - cardID: 3073
+        cardName: BorderTrick3DotBlack
+        cardSprite: {fileID: -7271165625982845261, guid: 74cefc820ebe0b740b5edd1ccdd1148f, type: 3}
+        rank: 3
+        isTrick: 1
+      - cardID: 3083
+        cardName: BorderTrick3TridotRed
+        cardSprite: {fileID: 6577962271100204858, guid: ab653a24e4b650247b500e7525f5a4c0, type: 3}
+        rank: 3
+        isTrick: 1
+      - cardID: 3093
+        cardName: BorderTrick3TridotBlack
+        cardSprite: {fileID: 2910787057882200110, guid: db324d795bf87574c91f53a3a1da23b5, type: 3}
+        rank: 3
+        isTrick: 1
+      - cardID: 4003
+        cardName: FillTrick3TriangleUpRed
+        cardSprite: {fileID: 2802365750339050841, guid: 1d9258956cb9e8a4f9d84c5c87921307, type: 3}
+        rank: 3
+        isTrick: 1
+      - cardID: 4013
+        cardName: FillTrick3TriangleUpBlack
+        cardSprite: {fileID: 7207692580506386026, guid: 832e7b0a798ac894988a79ab3567ec0a, type: 3}
+        rank: 3
+        isTrick: 1
+      - cardID: 4023
+        cardName: FillTrick3TriangleDownRed
+        cardSprite: {fileID: 3896982328070237517, guid: 07bef4ab33fd55142880b0ad32b05d49, type: 3}
+        rank: 3
+        isTrick: 1
+      - cardID: 4033
+        cardName: FillTrick3TriangleDownBlack
+        cardSprite: {fileID: -4466489621272000826, guid: a38a13db4bf12cd468e697400ff55e1d, type: 3}
+        rank: 3
+        isTrick: 1
+      - cardID: 4043
+        cardName: FillTrick3SquareRed
+        cardSprite: {fileID: -4354408379650991111, guid: 94c3218018587b94ba5304bded264089, type: 3}
+        rank: 3
+        isTrick: 1
+      - cardID: 4053
+        cardName: FillTrick3SquareBlack
+        cardSprite: {fileID: -9124095535643134485, guid: 7b5f3e39420b5854db616810de9a8d30, type: 3}
+        rank: 3
+        isTrick: 1
+      - cardID: 4063
+        cardName: FillTrick3DotRed
+        cardSprite: {fileID: 3867809423324643681, guid: f98cba4e4da6f3c4b93cc1d0d1c976f4, type: 3}
+        rank: 3
+        isTrick: 1
+      - cardID: 4073
+        cardName: FillTrick3DotBlack
+        cardSprite: {fileID: -2254586427243288731, guid: e6d045500ddd9c046b961ff0451619af, type: 3}
+        rank: 3
+        isTrick: 1
+      - cardID: 4083
+        cardName: FillTrick3TridotRed
+        cardSprite: {fileID: -7944453372892308710, guid: 3431c6b131d0020428c86b05b26b7fc0, type: 3}
+        rank: 3
+        isTrick: 1
+      - cardID: 4093
+        cardName: FillTrick3TridotBlack
+        cardSprite: {fileID: -7736642686329703340, guid: 338ba733a2c815f449ea251aa257f7e6, type: 3}
+        rank: 3
+        isTrick: 1
+    - rank: 5
+      trickVariations:
+      - cardID: 3005
+        cardName: BorderTrick5TriangleUpRed
+        cardSprite: {fileID: -8949792961073722222, guid: 4c427cd73e57b4d4e926a4fdea97a011, type: 3}
+        rank: 5
+        isTrick: 1
+      - cardID: 3015
+        cardName: BorderTrick5TriangleUpBlack
+        cardSprite: {fileID: -6617292267388966455, guid: a85fc0035c932df4e9d19247b1c8d3d7, type: 3}
+        rank: 5
+        isTrick: 1
+      - cardID: 3025
+        cardName: BorderTrick5TriangleDownRed
+        cardSprite: {fileID: -1539919934493670205, guid: 2b645cbcb47325d48b209ed5e0166ba0, type: 3}
+        rank: 5
+        isTrick: 1
+      - cardID: 3035
+        cardName: BorderTrick5TriangleDownBlack
+        cardSprite: {fileID: 2897133657920756275, guid: e6f1d8cd2ebbb2441b4c1779da1efbf7, type: 3}
+        rank: 5
+        isTrick: 1
+      - cardID: 3045
+        cardName: BorderTrick5SquareRed
+        cardSprite: {fileID: -6443120329114411123, guid: f05b91b5fc897894ab95120d0cc6efb0, type: 3}
+        rank: 5
+        isTrick: 1
+      - cardID: 3055
+        cardName: BorderTrick5SquareBlack
+        cardSprite: {fileID: 3100106993482279088, guid: 482f4da102397074d9f4e2027d4ace8a, type: 3}
+        rank: 5
+        isTrick: 1
+      - cardID: 3065
+        cardName: BorderTrick5DotRed
+        cardSprite: {fileID: -7090563174748485338, guid: 4db7e02f82cf23345994adb4312d3e97, type: 3}
+        rank: 5
+        isTrick: 1
+      - cardID: 3075
+        cardName: BorderTrick5DotBlack
+        cardSprite: {fileID: -3408431299063360800, guid: 10b880bef8492b94cbd6366dbe8e4a26, type: 3}
+        rank: 5
+        isTrick: 1
+      - cardID: 3085
+        cardName: BorderTrick5TridotRed
+        cardSprite: {fileID: -7943543666944404274, guid: df18904dba638e44697adfdb12b07a7d, type: 3}
+        rank: 5
+        isTrick: 1
+      - cardID: 3095
+        cardName: BorderTrick5TridotBlack
+        cardSprite: {fileID: 6837345627027929273, guid: 93295d2120b937b42afd6f18ef6b2d54, type: 3}
+        rank: 5
+        isTrick: 1
+      - cardID: 4005
+        cardName: FillTrick5TriangleUpRed
+        cardSprite: {fileID: -3259434595378279361, guid: 7011c85c71f1fd043bdd1a623e5e2a9c, type: 3}
+        rank: 5
+        isTrick: 1
+      - cardID: 4015
+        cardName: FillTrick5TriangleUpBlack
+        cardSprite: {fileID: 8698361162766552767, guid: bfc769e4f60969646842c7d96b9c631f, type: 3}
+        rank: 5
+        isTrick: 1
+      - cardID: 4025
+        cardName: FillTrick5TriangleDownRed
+        cardSprite: {fileID: 3922098575697261372, guid: 1133171b4b3c9af4ab7873d3b0a45f91, type: 3}
+        rank: 5
+        isTrick: 1
+      - cardID: 4035
+        cardName: FillTrick5TriangleDownBlack
+        cardSprite: {fileID: 3858413867341077527, guid: 98eb247456abc084f81566fee465606b, type: 3}
+        rank: 5
+        isTrick: 1
+      - cardID: 4045
+        cardName: FillTrick5SquareRed
+        cardSprite: {fileID: 4097198769546586570, guid: 171c570615144024984daf4a8ea048f0, type: 3}
+        rank: 5
+        isTrick: 1
+      - cardID: 4055
+        cardName: FillTrick5SquareBlack
+        cardSprite: {fileID: -929025459623905977, guid: bf2a2a2a5247c0c48b3c00a902fe2678, type: 3}
+        rank: 5
+        isTrick: 1
+      - cardID: 4065
+        cardName: FillTrick5DotRed
+        cardSprite: {fileID: -3418974494612146196, guid: bfc6bed0bd140b247b1ea2542037a283, type: 3}
+        rank: 5
+        isTrick: 1
+      - cardID: 4075
+        cardName: FillTrick5DotBlack
+        cardSprite: {fileID: 255515836335861994, guid: bc423f9073182b744abe6014e92b2c0d, type: 3}
+        rank: 5
+        isTrick: 1
+      - cardID: 4085
+        cardName: FillTrick5TridotRed
+        cardSprite: {fileID: -776958430721109180, guid: affe8f0b040ec6640840fd6705490be2, type: 3}
+        rank: 5
+        isTrick: 1
+      - cardID: 4095
+        cardName: FillTrick5TridotBlack
+        cardSprite: {fileID: -5968903599577748105, guid: 6fac6bdefe5afb84d99f8832e18bc37d, type: 3}
+        rank: 5
+        isTrick: 1
+    - rank: 6
+      trickVariations:
+      - cardID: 3006
+        cardName: BorderTrick6TriangleUpRed
+        cardSprite: {fileID: -6525543816726357004, guid: 57bf501826ba96b4ba4ddffc6ec8df23, type: 3}
+        rank: 6
+        isTrick: 1
+      - cardID: 3016
+        cardName: BorderTrick6TriangleUpBlack
+        cardSprite: {fileID: -4537527720164903492, guid: 31a543ea2320e0e44903aa2cc578c2a9, type: 3}
+        rank: 6
+        isTrick: 1
+      - cardID: 3026
+        cardName: BorderTrick6TriangleDownRed
+        cardSprite: {fileID: 6616603417497502494, guid: 9c34dd2305ec6804db8dc4b7220399c1, type: 3}
+        rank: 6
+        isTrick: 1
+      - cardID: 3036
+        cardName: BorderTrick6TriangleDownBlack
+        cardSprite: {fileID: -17557111695179368, guid: c4e176e613cb03d49b6ebbed08788dc7, type: 3}
+        rank: 6
+        isTrick: 1
+      - cardID: 3046
+        cardName: BorderTrick6SquareRed
+        cardSprite: {fileID: 391037179258710402, guid: 12b3275977a3ede4586ce5edad9237ee, type: 3}
+        rank: 6
+        isTrick: 1
+      - cardID: 3056
+        cardName: BorderTrick6SquareBlack
+        cardSprite: {fileID: 4282004466381702078, guid: 9bed2e1d7e70f804f9471ca265ad2019, type: 3}
+        rank: 6
+        isTrick: 1
+      - cardID: 3066
+        cardName: BorderTrick6DotRed
+        cardSprite: {fileID: -5891447236784628697, guid: 4f89287b7a8b9a142a00825b8b9085a7, type: 3}
+        rank: 6
+        isTrick: 1
+      - cardID: 3076
+        cardName: BorderTrick6DotBlack
+        cardSprite: {fileID: 1525069128910753119, guid: 12d935e3b3e66174d9e1f3096f22afdf, type: 3}
+        rank: 6
+        isTrick: 1
+      - cardID: 3086
+        cardName: BorderTrick6TridotRed
+        cardSprite: {fileID: -7714788147911997106, guid: 27e7048c491d7934b8fb834e8dfa5bbd, type: 3}
+        rank: 6
+        isTrick: 1
+      - cardID: 3096
+        cardName: BorderTrick6TridotBlack
+        cardSprite: {fileID: -4684941352007899302, guid: fb0c799eadfda314a84ce71623d79f28, type: 3}
+        rank: 6
+        isTrick: 1
+      - cardID: 4006
+        cardName: FillTrick6TriangleUpRed
+        cardSprite: {fileID: 2842380910969807446, guid: 8f59b1909446bf44886ab27a55d5ac1e, type: 3}
+        rank: 6
+        isTrick: 1
+      - cardID: 4016
+        cardName: FillTrick6TriangleUpBlack
+        cardSprite: {fileID: 2506935940823910753, guid: 584c7930310e3474bbb30270d6e7b0ab, type: 3}
+        rank: 6
+        isTrick: 1
+      - cardID: 4026
+        cardName: FillTrick6TriangleDownRed
+        cardSprite: {fileID: 4765903795195597832, guid: 0209c3d3dff3edf4fb22abb693d8e41a, type: 3}
+        rank: 6
+        isTrick: 1
+      - cardID: 4036
+        cardName: FillTrick6TriangleDownBlack
+        cardSprite: {fileID: -2930286167261112203, guid: e96bbf9ae2370d44fb92731946ac0806, type: 3}
+        rank: 6
+        isTrick: 1
+      - cardID: 4046
+        cardName: FillTrick6SquareRed
+        cardSprite: {fileID: 2821953804081009511, guid: 1cb36b3d972cb5849b9b2c4b3db6c7f9, type: 3}
+        rank: 6
+        isTrick: 1
+      - cardID: 4056
+        cardName: FillTrick6SquareBlack
+        cardSprite: {fileID: -5276545631035443689, guid: 64cacdd1abc2f214cacd375ce66c2721, type: 3}
+        rank: 6
+        isTrick: 1
+      - cardID: 4066
+        cardName: FillTrick6DotRed
+        cardSprite: {fileID: -2894876634767105399, guid: 54686ad429cb3074297078aae0efea4a, type: 3}
+        rank: 6
+        isTrick: 1
+      - cardID: 4076
+        cardName: FillTrick6DotBlack
+        cardSprite: {fileID: -960506565040277709, guid: acf215fb8770f7a4b9f7976f6b28d588, type: 3}
+        rank: 6
+        isTrick: 1
+      - cardID: 4086
+        cardName: FillTrick6TridotRed
+        cardSprite: {fileID: 7054732706999374675, guid: f65b84eef2c173f49b36bf86008a60b1, type: 3}
+        rank: 6
+        isTrick: 1
+      - cardID: 4096
+        cardName: FillTrick6TridotBlack
+        cardSprite: {fileID: -5890558503467086474, guid: 5bb77413ee14d9c4d87e15fea523c156, type: 3}
+        rank: 6
+        isTrick: 1
+  specialGroup:
+    groupName: Special
+    specialTypes:
+    - typeName: Joker
+      cards:
+      - cardID: 5002
+        cardName: Special_Joker
+        cardSprite: {fileID: 6421856297837412101, guid: b51a727abe651474c8b930b2ef7ac796, type: 3}
+        rank: 0
+        isTrick: 0
+    - typeName: Empty
+      cards:
+      - cardID: 5001
+        cardName: Special_Empty
+        cardSprite: {fileID: 8995154407686431259, guid: 06ce3d319daf3f7459b560f15d6684a0, type: 3}
+        rank: 0
+        isTrick: 0

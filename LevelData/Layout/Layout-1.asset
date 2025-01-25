@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b22f91302561198408190f6ea5efe632, type: 3}
   m_Name: Layout-1
   m_EditorClassIdentifier: 
-  layoutName: Layout_1
+  layoutName: Layout_2
   layers:
   - layerName: Layer 1
     zIndex: 0

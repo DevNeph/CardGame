@@ -17,7 +17,7 @@ MonoBehaviour:
   stages:
   - stageName: Level3-1
     layoutData: {fileID: 11400000, guid: 6b110ef92c6707f4c8ae73484b161f84, type: 2}
-    allowedCardIDs: 0000000001000000020000000d0000000e000000
+    allowedCardIDs: 89130000e90300001b0400003b04000047040000
     totalCardsInStage: 25
     isCompleted: 0
     timeLimit: 0
@@ -26,7 +26,7 @@ MonoBehaviour:
     - type: 1
       description: 
       targetAmount: 21
-      currentAmount: 3
+      currentAmount: 0
       specificCardID: 0
       isCompleted: 0
   levelThumbnail: {fileID: 0}

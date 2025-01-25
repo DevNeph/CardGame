@@ -222,7 +222,8 @@ public class CardDealer : MonoBehaviour
 
         List<int> remainingCards = new List<int>(workingDeck);
         List<int> targetCards = GetTargetCards();
-        
+
+        // Target kartları remainingCards'tan çıkar
         foreach (var cardId in targetCards)
         {
             if (remainingCards.Contains(cardId))
@@ -231,6 +232,15 @@ public class CardDealer : MonoBehaviour
             }
         }
 
+        // Target kartları ilk pozisyonlara yerleştir
+        for (int i = 0; i < targetCards.Count && i < allPositions.Count; i++)
+        {
+            int cardID = targetCards[i];
+            var (position, isHidden, layerIndex) = allPositions[i];
+            SpawnCard(cardID, position, isHidden, layerIndex);
+        }
+
+        // Kalan pozisyonları remainingCards ile doldur
         int remainingPositions = totalPositions - targetCards.Count;
         if (remainingPositions > 0 && remainingCards.Count > 0)
         {
@@ -243,6 +253,7 @@ public class CardDealer : MonoBehaviour
 
         GameManager.Instance?.UpdateAllCardsAppearance();
     }
+
 
     private List<(Vector3, bool, int)> GetAllPositions()
     {
@@ -339,6 +350,15 @@ public class CardDealer : MonoBehaviour
         {
             card.SetupCard(cardID, cardData.cardSprite, isHidden);
             card.SetLayerIndex(layerIndex);
+            
+            // Box Collider ayarları
+            BoxCollider2D boxCollider = cardObj.GetComponent<BoxCollider2D>();
+            if (boxCollider != null)
+            {
+                boxCollider.size = new Vector2(3f, 3.9f);
+                boxCollider.offset = Vector2.zero;
+            }
+            
             card.UpdateCardAppearance();
         }
     }

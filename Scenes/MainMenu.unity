@@ -241,7 +241,7 @@ Transform:
   m_GameObject: {fileID: 130580633}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 3.95, y: 7.008, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -278,7 +278,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: db3076fefb316e5449b31e9bd99a6c61, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  cardDataList: {fileID: 11400000, guid: 8b5dafbe23385944081e801a2cfb6c1e, type: 2}
+  cardDataList: {fileID: 11400000, guid: 3947f6198a8428f4eb090af63cdd953a, type: 2}
   cardPrefab: {fileID: 4182215074970125211, guid: 6ab175758e4b9934fbb1f8f11478091f, type: 3}
   showDebugLogs: 0
 --- !u!114 &690780195
@@ -369,7 +369,7 @@ MonoBehaviour:
   loadingScreenPrefab: {fileID: 5728995593787672339, guid: 8fbb242b5c2b7954794d8f2ee07a0193, type: 3}
   mainMenuUIPrefab: {fileID: 3159286883024134126, guid: f41a5c1decd25974f87809e15d6dfffe, type: 3}
   gameplayUIPrefab: {fileID: 4363439968538996541, guid: 334f75ce15f3196468b28255655e15b4, type: 3}
-  cardDataList: {fileID: 11400000, guid: 8b5dafbe23385944081e801a2cfb6c1e, type: 2}
+  cardDataList: {fileID: 11400000, guid: 3947f6198a8428f4eb090af63cdd953a, type: 2}
 --- !u!4 &1938623653
 Transform:
   m_ObjectHideFlags: 0
@@ -421,7 +421,7 @@ Camera:
   m_Enabled: 1
   serializedVersion: 2
   m_ClearFlags: 1
-  m_BackGroundColor: {r: 0.19215687, g: 0.3019608, b: 0.4745098, a: 0}
+  m_BackGroundColor: {r: 0.49056602, g: 0.49056602, b: 0.49056602, a: 0}
   m_projectionMatrixMode: 1
   m_GateFitMode: 2
   m_FOVAxisMode: 0
